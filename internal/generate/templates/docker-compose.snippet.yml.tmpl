@@ -3,7 +3,11 @@
 # Add this service to the platform's docker-compose on the VPS, or run it as
 # its own compose project under /srv/apps/crm-{{ .Client }}/.
 #
-# Uses the SHARED CRM image; only env + volume + port differ per client.
+# Uses the SHARED CRM image. The image always listens on 0.0.0.0:8081 INSIDE
+# the container; only the published host port ({{ .CRMPort }}) and the env +
+# volume differ per client. Caddy reverse-proxies admin.{{ .Domain }} to the
+# host port. Do NOT set LISTEN_ADDR in the env file — the image default is
+# correct for the container.
 
 services:
   crm-{{ .Client }}:
@@ -12,11 +16,11 @@ services:
     restart: unless-stopped
     env_file: /srv/secrets/crm-{{ .Client }}.env
     ports:
-      - "127.0.0.1:{{ .CRMPort }}:{{ .CRMPort }}"
+      - "127.0.0.1:{{ .CRMPort }}:8081"
     volumes:
       - crm-{{ .Client }}-data:/data
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:{{ .CRMPort }}/healthz"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8081/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3
