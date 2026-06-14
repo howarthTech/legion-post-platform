@@ -1,0 +1,17 @@
+# Build output
+/bin/
+
+# Provisioner output — generated per-client artifacts, regenerated from specs.
+# Contains generated secrets (CRM env files); never commit.
+/out/
+
+# Real client specs may contain contact details / config you don't want public.
+# The reference spec (clients/post-5.yaml) is committed as an example; add a
+# rule here if you keep private client specs in this repo.
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
