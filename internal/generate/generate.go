@@ -97,6 +97,12 @@ var funcs = template.FuncMap{
 			return -1
 		}, p)
 	},
+	// envEscape doubles $ so docker compose env_file interpolation yields the
+	// literal value. Without it, a bcrypt hash like $2a$10$... is read as
+	// variable references and silently truncated inside the container.
+	"envEscape": func(v string) string {
+		return strings.ReplaceAll(v, "$", "$$")
+	},
 }
 
 func renderFile(tmplPath, outPath string, data any) error {
