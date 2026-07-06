@@ -84,6 +84,24 @@ development).
 - **Port allocation.** `crmPort` is specified per client; the tool doesn't yet
   track which ports are taken across clients.
 
+## Billing (Square)
+
+Platform billing is a second CLI, `bin/billing` — Square subscriptions,
+annual cadence: **Website $149/yr**, **SMS CRM add-on $50/yr**.
+
+```bash
+make build
+./bin/billing -secrets path/to/square.env setup                 # create the two plans (idempotent)
+./bin/billing -secrets path/to/square.env subscribe -spec clients/post-5.yaml -plans website,sms
+./bin/billing -secrets path/to/square.env status                # all subscriptions + renewal dates
+```
+
+`subscribe` ensures a Square Customer for the client (identity:
+`reference_id` = client slug) and prints one Square-hosted checkout link per
+plan — send it to the post; paying it starts the annual subscription with the
+card on file. `square.env` holds `SQUARE_ENV` (`sandbox`/`production`),
+`SQUARE_ACCESS_TOKEN`, `SQUARE_LOCATION_ID`.
+
 ## Build / dev
 
 ```bash
