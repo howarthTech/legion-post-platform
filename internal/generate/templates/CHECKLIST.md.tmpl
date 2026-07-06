@@ -71,5 +71,5 @@ this directory; the steps below are the manual ones it can't do for you.
 | Client slug | `{{ .Client }}` |
 | Domain | `{{ .Domain }}` |
 | CRM loopback port | `{{ .CRMPort }}` |
-| Events feed (CRM reads) | `{{ .EventsFeedURL }}` |
+| Events API (site builds from) | `https://admin.{{ .Domain }}/api/events.json` |
 {{- end }}

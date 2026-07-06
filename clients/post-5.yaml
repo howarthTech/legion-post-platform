@@ -44,6 +44,7 @@ mapShortlinks:
 
 crmPort: 8081
 adminUsername: admin
+siteRepo: howarthTech/legion-rome
 
 officers:
   - role: "Commander"

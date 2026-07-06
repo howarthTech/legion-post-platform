@@ -55,7 +55,7 @@ type Spec struct {
 	// CRM
 	CRMPort      int    `yaml:"crmPort"`      // loopback port for this client's CRM container
 	AdminUsername string `yaml:"adminUsername"` // CRM admin login (default "admin")
-	EventsFeedURL string `yaml:"eventsFeedURL"` // usually https://<domain>/events/events.json
+	SiteRepo     string `yaml:"siteRepo"`     // GitHub repo of the client's site (rebuild dispatch target)
 }
 
 type Address struct {
@@ -117,9 +117,6 @@ func (s *Spec) applyDefaults() {
 	}
 	if s.CRMPort == 0 {
 		s.CRMPort = 8082
-	}
-	if s.EventsFeedURL == "" && s.Domain != "" {
-		s.EventsFeedURL = fmt.Sprintf("https://%s/events/events.json", s.Domain)
 	}
 }
 

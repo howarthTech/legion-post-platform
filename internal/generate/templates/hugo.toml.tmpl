@@ -12,8 +12,9 @@ enableGitInfo = false
 buildFuture = true
 disableKinds = ["taxonomy", "term"]
 
+# (events intentionally has NO permalink pattern: event pages come from the
+# client's CRM via the events content adapter; the adapter path is the slug.)
 [permalinks]
-  events = "/events/:slug/"
   news = "/news/:slug/"
 
 [markup]
@@ -51,6 +52,10 @@ disableKinds = ["taxonomy", "term"]
   facebookSearch = "{{ .FacebookSearch }}"
   schemaAltName = "{{ .FacebookSearch }}"
   timezone = "{{ .Timezone }}"
+
+  # The client CRM's public events feed — the site's events section builds
+  # its pages from this at build time. Events are authored in the CRM.
+  eventsAPI = "https://admin.{{ .Domain }}/api/events.json"
 
 # [params.*] sub-tables must come after all direct keys above.
 [params.postal]
