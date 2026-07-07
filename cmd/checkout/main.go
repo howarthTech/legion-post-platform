@@ -51,9 +51,9 @@ func main() {
 	mailer := email.FromEnv()
 	operatorEmail := os.Getenv("OPERATOR_EMAIL")
 	if mailer.Enabled() {
-		log.Printf("email: enabled (operator alerts -> %s)", orDefault(operatorEmail, "(none)"))
+		log.Printf("email: enabled via Resend (operator alerts -> %s)", orDefault(operatorEmail, "(none)"))
 	} else {
-		log.Println("ℹ email: not configured (SMTP_*) — receipts/notices shown on-screen only, operator alerts via NOTIFY_URL")
+		log.Println("ℹ email: not configured (RESEND_API_KEY/EMAIL_FROM) — receipts/notices shown on-screen only, operator alerts via NOTIFY_URL")
 	}
 	oc := &opContext{mailer: mailer, operatorEmail: operatorEmail, notifyURL: notifyURL}
 
