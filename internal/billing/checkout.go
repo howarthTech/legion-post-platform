@@ -20,8 +20,9 @@ type Buyer struct {
 	Phone       string
 }
 
-// who returns the contact with rank prefixed when present ("Commander Hollis").
-func (b Buyer) who() string {
+// WhoDisplay returns the contact with rank prefixed when present
+// ("Commander Hollis").
+func (b Buyer) WhoDisplay() string {
 	if b.Rank != "" {
 		return b.Rank + " " + b.ContactName
 	}
@@ -75,7 +76,7 @@ func (c *Client) CreateCustomer(b Buyer) (string, error) {
 		"given_name":      b.ContactName,
 		"company_name":    b.PostName,
 		"email_address":   b.Email,
-		"note":            "Legion Post Websites — " + b.PostName + " (" + b.who() + ")",
+		"note":            "Legion Post Websites — " + b.PostName + " (" + b.WhoDisplay() + ")",
 	}
 	if b.Phone != "" {
 		body["phone_number"] = b.Phone

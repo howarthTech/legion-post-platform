@@ -26,6 +26,13 @@ import (
 	"time"
 
 	"github.com/howarthTech/legion-post-platform/internal/billing"
+	"github.com/howarthTech/legion-post-platform/internal/email"
+)
+
+// checkPayee + checkAddress are where mailed checks go.
+var (
+	checkPayee   = "Howarth Tech Solutions"
+	checkAddress = []string{"9804 E Alabama Pl, Unit 302", "Denver, CO 80247"}
 )
 
 func main() {
@@ -40,10 +47,20 @@ func main() {
 	notifyURL := os.Getenv("NOTIFY_URL") // optional: POST a note here on each sale
 	listen := envOr("LISTEN_ADDR", "0.0.0.0:8092")
 
+	// Transactional email (MXroute SMTP). Degrades gracefully when unset.
+	mailer := email.FromEnv()
+	operatorEmail := os.Getenv("OPERATOR_EMAIL")
+	if mailer.Enabled() {
+		log.Printf("email: enabled (operator alerts -> %s)", orDefault(operatorEmail, "(none)"))
+	} else {
+		log.Println("ℹ email: not configured (SMTP_*) — receipts/notices shown on-screen only, operator alerts via NOTIFY_URL")
+	}
+	oc := &opContext{mailer: mailer, operatorEmail: operatorEmail, notifyURL: notifyURL}
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/config", configHandler(client))
-	mux.HandleFunc("POST /api/checkout", checkoutHandler(client, notifyURL))
-	mux.HandleFunc("POST /api/check-signup", checkSignupHandler(client, notifyURL))
+	mux.HandleFunc("POST /api/checkout", checkoutHandler(client, oc))
+	mux.HandleFunc("POST /api/check-signup", checkSignupHandler(client, oc))
 	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		_, _ = w.Write([]byte("ok"))
@@ -82,7 +99,7 @@ func configHandler(c *billing.Client) http.HandlerFunc {
 
 var emailRE = regexp.MustCompile(`^[^@\s]+@[^@\s]+\.[^@\s]+$`)
 
-func checkoutHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
+func checkoutHandler(c *billing.Client, oc *opContext) http.HandlerFunc {
 	type req struct {
 		SourceID    string   `json:"sourceId"`
 		PostName    string   `json:"postName"`
@@ -121,9 +138,15 @@ func checkoutHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
 			return
 		}
 
+		total := billing.PriceForPlans(res.Plans)
+		summary := planSummary(res.Plans)
 		log.Printf("✓ checkout (card): %q <%s> plans=%v customer=%s subs=%v",
 			buyer.PostName, buyer.Email, res.Plans, res.CustomerID, res.SubscriptionIDs)
-		notify(notifyURL, "card", buyer, res.Plans)
+
+		// Emails: buyer receipt + operator alert (best-effort, off the response path).
+		oc.emailBuyer(buyer.Email, "Your Legion Post Websites subscription",
+			email.ReceiptHTML(buyer.PostName, buyer.WhoDisplay(), summary, total))
+		oc.alertOperator("card", buyer, summary, total)
 
 		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "plans": res.Plans})
 	}
@@ -132,7 +155,7 @@ func checkoutHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
 // checkSignupHandler records a "pay by check" signup: no card is processed.
 // The operator is notified and, after verifying the post, takes the site live
 // once the mailed check arrives. Returns the amount to mail.
-func checkSignupHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
+func checkSignupHandler(c *billing.Client, oc *opContext) http.HandlerFunc {
 	type req struct {
 		PostName    string   `json:"postName"`
 		ContactName string   `json:"contactName"`
@@ -180,9 +203,14 @@ func checkSignupHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
 			log.Printf("check-signup customer=%s", custID)
 		}
 
+		summary := planSummary(plans)
 		log.Printf("✓ check-signup: %q <%s> plans=%v total=$%d — awaiting mailed check",
 			buyer.PostName, buyer.Email, plans, totalCents/100)
-		notify(notifyURL, "check", buyer, plans)
+
+		// Emails: mail-your-check notice to the buyer + operator alert.
+		oc.emailBuyer(buyer.Email, "Mail your check — Legion Post Websites",
+			email.CheckInstructionsHTML(buyer.PostName, buyer.WhoDisplay(), totalCents, checkPayee, checkAddress))
+		oc.alertOperator("check", buyer, summary, totalCents)
 
 		writeJSON(w, http.StatusOK, map[string]any{
 			"ok":         true,
@@ -190,6 +218,53 @@ func checkSignupHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
 			"totalCents": totalCents,
 		})
 	}
+}
+
+// opContext carries the operator-notification + email dependencies to handlers.
+type opContext struct {
+	mailer        *email.Sender
+	operatorEmail string
+	notifyURL     string
+}
+
+// emailBuyer sends a buyer-facing email best-effort (no-op if email is off).
+func (o *opContext) emailBuyer(to, subject, html string) {
+	if !o.mailer.Enabled() || to == "" {
+		return
+	}
+	go func() {
+		if err := o.mailer.Send(to, subject, html); err != nil {
+			log.Printf("email to buyer %s failed: %v", to, err)
+		}
+	}()
+}
+
+// alertOperator tells the operator about a signup: email if configured, else
+// the NOTIFY_URL webhook (Formspree) as a fallback.
+func (o *opContext) alertOperator(method string, b billing.Buyer, summary string, totalCents int64) {
+	if o.mailer.Enabled() && o.operatorEmail != "" {
+		go func() {
+			body := email.OperatorHTML(method, b.PostName, b.WhoDisplay(), b.Email, b.Phone, summary, totalCents)
+			subj := "LPW signup (" + method + "): " + b.PostName
+			if err := o.mailer.Send(o.operatorEmail, subj, body); err != nil {
+				log.Printf("operator alert email failed: %v", err)
+			}
+		}()
+		return
+	}
+	notifyWebhook(o.notifyURL, method, b, summary)
+}
+
+// planSummary renders a friendly plan description from the selected keys.
+func planSummary(plans []string) string {
+	has := map[string]bool{}
+	for _, k := range plans {
+		has[strings.ToLower(k)] = true
+	}
+	if has["sms"] {
+		return "Website + SMS Reminders"
+	}
+	return "Website"
 }
 
 // parseBuyer validates the shared buyer fields; returns a user-facing message
@@ -211,10 +286,9 @@ func parseBuyer(postName, contactName, rank, email, phone string) (billing.Buyer
 	return b, ""
 }
 
-// notify fires a best-effort POST so the operator learns a post has signed up
-// (by card or check) and the site can be taken live. No-op when NOTIFY_URL is
-// unset. method is "card" or "check".
-func notify(url, method string, b billing.Buyer, plans []string) {
+// notifyWebhook fires a best-effort POST so the operator learns a post has
+// signed up when email isn't configured. No-op when NOTIFY_URL is unset.
+func notifyWebhook(url, method string, b billing.Buyer, summary string) {
 	if url == "" {
 		return
 	}
@@ -223,18 +297,14 @@ func notify(url, method string, b billing.Buyer, plans []string) {
 		subject = "LPW — new signup (pay by CHECK, awaiting payment): " + b.PostName
 	}
 	go func() {
-		contact := b.ContactName
-		if b.Rank != "" {
-			contact = b.Rank + " " + b.ContactName
-		}
 		payload, _ := json.Marshal(map[string]any{
 			"_subject": subject,
 			"method":   method,
 			"post":     b.PostName,
-			"contact":  contact,
+			"contact":  b.WhoDisplay(),
 			"email":    b.Email,
 			"phone":    b.Phone,
-			"plans":    strings.Join(plans, ", "),
+			"plans":    summary,
 		})
 		hc := &http.Client{Timeout: 15 * time.Second}
 		req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))

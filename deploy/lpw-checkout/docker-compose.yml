@@ -1,16 +1,28 @@
 # Legion Post Websites checkout backend — deploy to /srv/apps/lpw-checkout/.
 # Holds the Square access token; Caddy routes legionpostwebsites.com/api/* here.
+# Also sends transactional email (receipts, check notices, operator alerts) via
+# MXroute SMTP.
 services:
   lpw-checkout:
     image: lpw-checkout:latest          # built on-box: docker build -f Dockerfile.checkout -t lpw-checkout:latest .
     container_name: lpw-checkout
     restart: unless-stopped
-    env_file: /srv/secrets/square.env   # SQUARE_ENV / APPLICATION_ID / ACCESS_TOKEN / LOCATION_ID
+    env_file:
+      - /srv/secrets/square.env         # SQUARE_ENV / APPLICATION_ID / ACCESS_TOKEN / LOCATION_ID
+      - /srv/secrets/lpw-checkout.env    # SMTP_PASS (the send-mailbox password) — that's the only secret here
     environment:
       LISTEN_ADDR: "0.0.0.0:8200"
       TZ: "America/New_York"
-      # Optional: operator gets emailed on each paid subscription.
+      # Operator alert fallback (used only when SMTP isn't configured).
       NOTIFY_URL: "https://formspree.io/f/xrewgjon"
+      # Transactional email via MXroute SMTP (non-secret config; password is in
+      # the env_file above). Host is your MXroute outgoing server.
+      SMTP_HOST: "witcher.mxrouting.net"
+      SMTP_PORT: "465"
+      SMTP_USER: "hello@legionpostwebsites.com"
+      EMAIL_FROM: "Legion Post Websites <hello@legionpostwebsites.com>"
+      EMAIL_REPLYTO: "support@legionpostwebsites.com"
+      OPERATOR_EMAIL: "support@legionpostwebsites.com"
     ports:
       - "127.0.0.1:8200:8200"           # loopback only; Caddy fronts it
     healthcheck:
