@@ -15,8 +15,32 @@ import (
 type Buyer struct {
 	PostName    string
 	ContactName string
+	Rank        string // optional rank/title, e.g. "Commander"
 	Email       string
 	Phone       string
+}
+
+// who returns the contact with rank prefixed when present ("Commander Hollis").
+func (b Buyer) who() string {
+	if b.Rank != "" {
+		return b.Rank + " " + b.ContactName
+	}
+	return b.ContactName
+}
+
+// PriceForPlans sums the annual price (cents) of the selected plan keys.
+func PriceForPlans(planKeys []string) int64 {
+	want := map[string]bool{}
+	for _, k := range planKeys {
+		want[strings.TrimSpace(strings.ToLower(k))] = true
+	}
+	var total int64
+	for _, p := range Plans {
+		if want[p.Key] {
+			total += p.PriceCents
+		}
+	}
+	return total
 }
 
 // CheckoutResult reports the outcome of an embedded checkout.
@@ -51,7 +75,7 @@ func (c *Client) CreateCustomer(b Buyer) (string, error) {
 		"given_name":      b.ContactName,
 		"company_name":    b.PostName,
 		"email_address":   b.Email,
-		"note":            "Legion Post Websites — " + b.PostName,
+		"note":            "Legion Post Websites — " + b.PostName + " (" + b.who() + ")",
 	}
 	if b.Phone != "" {
 		body["phone_number"] = b.Phone

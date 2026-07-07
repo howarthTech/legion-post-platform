@@ -37,20 +37,25 @@ h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size
 .total .amt{font-weight:900;font-size:1.8rem;color:var(--navy)}
 .field{margin-bottom:1rem}
 .field label{display:block;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.8rem;margin-bottom:.35rem}
+.field .opt{font-weight:500;color:rgba(15,27,49,.5)}
 .field input{width:100%;font-family:var(--serif);font-size:1.05rem;padding:.6rem .7rem;border:2px solid var(--ink);background:var(--paper);min-height:44px}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 @media(max-width:520px){.two{grid-template-columns:1fr}}
+.method{display:flex;gap:.8rem;align-items:flex-start;padding:.6rem 0;cursor:pointer}
+.method input{margin-top:.3rem;width:1.15rem;height:1.15rem;flex:0 0 auto}
+.method .mn{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.method .msub{font-size:.88rem;color:rgba(15,27,49,.65)}
 #card-container{border:2px solid var(--ink);background:#fff;padding:.5rem .6rem;min-height:52px;border-radius:2px}
 .pay-btn{width:100%;margin-top:1.4rem;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:1.05rem;border:2px solid var(--gold);background:var(--gold);color:var(--ink);padding:.9rem;cursor:pointer}
 .pay-btn:hover{background:var(--gold-bright)}
 .pay-btn[disabled]{opacity:.5;cursor:not-allowed}
 .msg{margin-top:1rem;padding:.8rem 1rem;font-weight:600;font-size:.95rem;border:2px solid}
 .msg.err{border-color:var(--red);color:var(--red);background:#fbeceb}
-.msg.ok{border-color:var(--green);color:var(--green);background:#eaf5ec}
-.fine{font-size:.82rem;color:rgba(15,27,49,.6);margin-top:1rem;line-height:1.5}
 .secure{font-size:.82rem;color:rgba(15,27,49,.6);margin-top:.6rem}
+.fine{font-size:.82rem;color:rgba(15,27,49,.6);margin-top:1rem;line-height:1.5}
 .done{text-align:center;padding:2.5rem 1rem}
 .done .big{font-size:3rem;color:var(--gold)}
+.addr{display:inline-block;text-align:left;background:#fff;border:2px solid var(--ink);border-left:5px solid var(--gold);padding:1rem 1.4rem;margin:1.2rem auto;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.03em;line-height:1.5}
 footer.site{background:var(--ink);color:rgba(245,239,223,.7);padding:1.6rem 0;font-size:.85rem;border-top:3px solid var(--gold);margin-top:2rem}
 footer.site a{color:var(--gold-bright)}
 [hidden]{display:none!important}
@@ -65,57 +70,100 @@ footer.site a{color:var(--gold-bright)}
   <div id="checkout">
     <h1>Take your site live</h1>
     <p class="lead">Start your annual subscription to publish your post's website.
-    You can cancel anytime; your card is billed once a year.</p>
+    You can cancel anytime.</p>
 
     <form id="pay-form">
       <div class="card">
         <div id="plans"><p class="psub">Loading plans…</p></div>
-        <div class="total"><span>Total today</span><span class="amt" id="total">—</span></div>
+        <div class="total"><span>Total per year</span><span class="amt" id="total">—</span></div>
       </div>
 
       <div class="card">
         <div class="field">
           <label for="postName">Post name</label>
-          <input id="postName" name="postName" required placeholder="American Legion Post 5">
+          <input id="postName" name="postName" required placeholder="American Legion Post 42">
         </div>
         <div class="two">
           <div class="field">
-            <label for="contactName">Your name</label>
-            <input id="contactName" name="contactName" required placeholder="Albert Hollis">
+            <label for="rank">Rank / title <span class="opt">(optional)</span></label>
+            <input id="rank" name="rank" placeholder="Commander" list="rank-list" autocomplete="off">
+            <datalist id="rank-list">
+              <option value="Commander"></option>
+              <option value="Vice Commander"></option>
+              <option value="Adjutant"></option>
+              <option value="Finance Officer"></option>
+              <option value="Auxiliary President"></option>
+            </datalist>
           </div>
           <div class="field">
-            <label for="phone">Phone <span style="font-weight:500;color:rgba(15,27,49,.5)">(optional)</span></label>
-            <input id="phone" name="phone" type="tel" placeholder="(706) 555-1234">
+            <label for="contactName">Your name</label>
+            <input id="contactName" name="contactName" required placeholder="Jane Adams">
           </div>
         </div>
-        <div class="field">
-          <label for="email">Email (for your receipt)</label>
-          <input id="email" name="email" type="email" required placeholder="you@example.org">
+        <div class="two">
+          <div class="field">
+            <label for="email">Email (for your receipt)</label>
+            <input id="email" name="email" type="email" required placeholder="you@example.org">
+          </div>
+          <div class="field">
+            <label for="phone">Phone <span class="opt">(optional)</span></label>
+            <input id="phone" name="phone" type="tel" placeholder="(706) 555-1234">
+          </div>
         </div>
       </div>
 
       <div class="card">
+        <p style="font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.8rem;margin-bottom:.4rem">How would you like to pay?</p>
+        <label class="method">
+          <input type="radio" name="method" value="card" checked>
+          <span><span class="mn">Pay by card</span><span class="msub"> — take your site live right away.</span></span>
+        </label>
+        <label class="method">
+          <input type="radio" name="method" value="check">
+          <span><span class="mn">Pay by check</span><span class="msub"> — sign up now and mail a check; we take your site live once it arrives.</span></span>
+        </label>
+      </div>
+
+      <div class="card" id="card-card">
         <div class="field">
           <label for="card-container">Card</label>
           <div id="card-container"></div>
         </div>
         <p class="secure">🔒 Your card is entered directly with Square and never touches our servers.</p>
-        <button type="submit" class="pay-btn" id="pay-btn" disabled>Loading secure checkout…</button>
-        <div class="msg err" id="err" hidden></div>
       </div>
+
+      <button type="submit" class="pay-btn" id="pay-btn" disabled>Loading secure checkout…</button>
+      <div class="msg err" id="err" hidden></div>
 
       <p class="fine">By subscribing you agree to our
       <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
-      Subscriptions renew annually until cancelled. Contact
-      support@legionpostwebsites.com to cancel or for help.</p>
+      Subscriptions renew annually until cancelled. Questions? support@legionpostwebsites.com</p>
     </form>
   </div>
 
-  <section id="done" class="done" hidden>
+  <!-- Card success -->
+  <section id="done-card" class="done" hidden>
     <div class="big" aria-hidden="true">★</div>
     <h1>You're all set</h1>
-    <p class="lead" id="done-msg">Payment received — thank you! We'll take your
-    site live shortly and email you when it's published.</p>
+    <p class="lead">Payment received — thank you! We'll take your site live shortly
+    and email you when it's published.</p>
+    <p><a href="/">Return to the main site</a></p>
+  </section>
+
+  <!-- Check success -->
+  <section id="done-check" class="done" hidden>
+    <div class="big" aria-hidden="true">★</div>
+    <h1>Almost there</h1>
+    <p class="lead">Thanks! We've got your details and will verify your post. To
+    complete sign-up, mail a check for <strong id="check-amount">—</strong>,
+    payable to <strong>Howarth Tech Solutions</strong>, to:</p>
+    <div class="addr">
+      Howarth Tech Solutions<br>
+      9804 E Alabama Pl, Unit 302<br>
+      Denver, CO 80247
+    </div>
+    <p class="lead">We'll take your site live once your check arrives. We'll email
+    you a confirmation at each step.</p>
     <p><a href="/">Return to the main site</a></p>
   </section>
 </main>
@@ -133,23 +181,26 @@ footer.site a{color:var(--gold-bright)}
   var errEl = document.getElementById("err");
   var plansEl = document.getElementById("plans");
   var totalEl = document.getElementById("total");
-  var card, config, selected = {};
+  var cardCard = document.getElementById("card-card");
+  var card, config, selected = {}, sdkReady = false;
 
   function money(cents) { return "$" + (cents / 100).toFixed(0); }
   function showErr(m) { errEl.textContent = m; errEl.hidden = false; }
   function clearErr() { errEl.hidden = true; }
+  function method() { return (form.querySelector('[name="method"]:checked') || {}).value || "card"; }
 
-  function recalcTotal() {
+  function totalCents() {
     var t = 0;
     config.plans.forEach(function (p) { if (selected[p.key]) t += p.priceCents; });
-    totalEl.textContent = money(t) + "/yr";
+    return t;
   }
+  function recalcTotal() { totalEl.textContent = money(totalCents()) + "/yr"; }
 
   function renderPlans() {
     plansEl.innerHTML = "";
     config.plans.forEach(function (p) {
       var required = p.key === "website";
-      selected[p.key] = required || p.key === "website";
+      selected[p.key] = required;
       var row = document.createElement("label");
       row.className = "plan";
       row.innerHTML =
@@ -176,6 +227,21 @@ footer.site a{color:var(--gold-bright)}
     });
   }
 
+  function updateForMethod() {
+    var m = method();
+    cardCard.hidden = m !== "card";
+    if (m === "check") {
+      payBtn.disabled = false;
+      payBtn.textContent = "Sign up — I'll mail a check";
+    } else {
+      payBtn.disabled = !sdkReady;
+      payBtn.textContent = sdkReady ? "Subscribe & take my site live" : "Loading secure checkout…";
+    }
+  }
+  form.querySelectorAll('[name="method"]').forEach(function (r) {
+    r.addEventListener("change", function () { clearErr(); updateForMethod(); });
+  });
+
   async function init() {
     try {
       config = await fetch(API + "/config").then(function (r) { if (!r.ok) throw 0; return r.json(); });
@@ -190,47 +256,73 @@ footer.site a{color:var(--gold-bright)}
       var payments = window.Square.payments(config.applicationId, config.locationId);
       card = await payments.card();
       await card.attach("#card-container");
-      payBtn.disabled = false;
-      payBtn.textContent = "Subscribe & take my site live";
+      sdkReady = true;
     } catch (e) {
-      showErr("Couldn't load the secure card form. Please refresh, or contact us.");
+      // Card unavailable — check payment still works.
+      cardCard.innerHTML = '<p class="secure">Card entry is unavailable right now — you can still pay by check below.</p>';
     }
+    updateForMethod();
+  }
+
+  function fields() {
+    return {
+      postName: document.getElementById("postName").value.trim(),
+      contactName: document.getElementById("contactName").value.trim(),
+      rank: document.getElementById("rank").value.trim(),
+      email: document.getElementById("email").value.trim(),
+      phone: document.getElementById("phone").value.trim(),
+      plans: config.plans.filter(function (p) { return selected[p.key]; }).map(function (p) { return p.key; })
+    };
+  }
+  function validFields(f) {
+    return f.postName && f.contactName && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(f.email);
   }
 
   form.addEventListener("submit", async function (ev) {
     ev.preventDefault();
     clearErr();
-    if (!card) return;
-    var postName = document.getElementById("postName").value.trim();
-    var contactName = document.getElementById("contactName").value.trim();
-    var email = document.getElementById("email").value.trim();
-    if (!postName || !contactName || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      showErr("Please fill in the post name, your name, and a valid email.");
+    var f = fields();
+    if (!validFields(f)) { showErr("Please fill in the post name, your name, and a valid email."); return; }
+
+    if (method() === "check") {
+      payBtn.disabled = true; payBtn.textContent = "Submitting…";
+      try {
+        var resp = await fetch(API + "/check-signup", {
+          method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+          body: JSON.stringify(f)
+        });
+        var data = await resp.json();
+        if (!resp.ok || !data.ok) throw new Error(data.error || "Something went wrong.");
+        document.getElementById("check-amount").textContent = money(data.totalCents);
+        document.getElementById("checkout").hidden = true;
+        document.getElementById("done-check").hidden = false;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      } catch (e) {
+        showErr(e.message || "Something went wrong. Please try again or contact us.");
+        payBtn.disabled = false; payBtn.textContent = "Sign up — I'll mail a check";
+      }
       return;
     }
+
+    // Card path
+    if (!card) { showErr("Card entry isn't available — please choose Pay by check."); return; }
     payBtn.disabled = true; payBtn.textContent = "Processing…";
     var tok;
-    try {
-      tok = await card.tokenize();
-    } catch (e) { tok = { status: "ERR" }; }
+    try { tok = await card.tokenize(); } catch (e) { tok = { status: "ERR" }; }
     if (!tok || tok.status !== "OK") {
       showErr("Please check your card details and try again.");
       payBtn.disabled = false; payBtn.textContent = "Subscribe & take my site live";
       return;
     }
-    var plans = config.plans.filter(function (p) { return selected[p.key]; }).map(function (p) { return p.key; });
     try {
-      var resp = await fetch(API + "/checkout", {
+      var r2 = await fetch(API + "/checkout", {
         method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
-        body: JSON.stringify({
-          sourceId: tok.token, postName: postName, contactName: contactName,
-          email: email, phone: document.getElementById("phone").value.trim(), plans: plans
-        })
+        body: JSON.stringify(Object.assign({ sourceId: tok.token }, f))
       });
-      var data = await resp.json();
-      if (!resp.ok || !data.ok) throw new Error(data.error || "Payment failed.");
+      var d2 = await r2.json();
+      if (!r2.ok || !d2.ok) throw new Error(d2.error || "Payment failed.");
       document.getElementById("checkout").hidden = true;
-      document.getElementById("done").hidden = false;
+      document.getElementById("done-card").hidden = false;
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (e) {
       showErr(e.message || "We couldn't complete the payment. Your card was not charged.");

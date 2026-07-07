@@ -43,6 +43,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/config", configHandler(client))
 	mux.HandleFunc("POST /api/checkout", checkoutHandler(client, notifyURL))
+	mux.HandleFunc("POST /api/check-signup", checkSignupHandler(client, notifyURL))
 	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		_, _ = w.Write([]byte("ok"))
@@ -86,6 +87,7 @@ func checkoutHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
 		SourceID    string   `json:"sourceId"`
 		PostName    string   `json:"postName"`
 		ContactName string   `json:"contactName"`
+		Rank        string   `json:"rank"`
 		Email       string   `json:"email"`
 		Phone       string   `json:"phone"`
 		Plans       []string `json:"plans"`
@@ -96,67 +98,143 @@ func checkoutHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
 			writeErr(w, http.StatusBadRequest, "Could not read the form. Please try again.")
 			return
 		}
-		in.PostName = strings.TrimSpace(in.PostName)
-		in.ContactName = strings.TrimSpace(in.ContactName)
-		in.Email = strings.TrimSpace(in.Email)
-
-		switch {
-		case in.SourceID == "":
+		buyer, msg := parseBuyer(in.PostName, in.ContactName, in.Rank, in.Email, in.Phone)
+		if msg != "" {
+			writeErr(w, http.StatusBadRequest, msg)
+			return
+		}
+		if in.SourceID == "" {
 			writeErr(w, http.StatusBadRequest, "Card details are missing — please re-enter your card.")
 			return
-		case in.PostName == "" || in.ContactName == "":
-			writeErr(w, http.StatusBadRequest, "Please enter the post name and your name.")
-			return
-		case !emailRE.MatchString(in.Email):
-			writeErr(w, http.StatusBadRequest, "Please enter a valid email address.")
-			return
 		}
 
-		buyer := billing.Buyer{
-			PostName:    in.PostName,
-			ContactName: in.ContactName,
-			Email:       in.Email,
-			Phone:       strings.TrimSpace(in.Phone),
-		}
 		res, err := c.Checkout(in.SourceID, buyer, in.Plans)
 		if err != nil {
 			// Log the full error server-side; give the buyer a safe message.
-			log.Printf("checkout failed for %q <%s>: %v", in.PostName, in.Email, err)
-			msg := "We couldn't complete the payment. Your card was not charged. " +
+			log.Printf("checkout failed for %q <%s>: %v", buyer.PostName, buyer.Email, err)
+			m := "We couldn't complete the payment. Your card was not charged. " +
 				"Please check your card details and try again, or contact us."
 			if strings.Contains(err.Error(), "Website plan is required") {
-				msg = "Please keep the Website plan selected — it's required."
+				m = "Please keep the Website plan selected — it's required."
 			}
-			writeErr(w, http.StatusPaymentRequired, msg)
+			writeErr(w, http.StatusPaymentRequired, m)
 			return
 		}
 
-		log.Printf("✓ checkout: %q <%s> plans=%v customer=%s subs=%v",
-			in.PostName, in.Email, res.Plans, res.CustomerID, res.SubscriptionIDs)
-		notify(notifyURL, buyer, res)
+		log.Printf("✓ checkout (card): %q <%s> plans=%v customer=%s subs=%v",
+			buyer.PostName, buyer.Email, res.Plans, res.CustomerID, res.SubscriptionIDs)
+		notify(notifyURL, "card", buyer, res.Plans)
+
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true, "plans": res.Plans})
+	}
+}
+
+// checkSignupHandler records a "pay by check" signup: no card is processed.
+// The operator is notified and, after verifying the post, takes the site live
+// once the mailed check arrives. Returns the amount to mail.
+func checkSignupHandler(c *billing.Client, notifyURL string) http.HandlerFunc {
+	type req struct {
+		PostName    string   `json:"postName"`
+		ContactName string   `json:"contactName"`
+		Rank        string   `json:"rank"`
+		Email       string   `json:"email"`
+		Phone       string   `json:"phone"`
+		Plans       []string `json:"plans"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		var in req
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<16)).Decode(&in); err != nil {
+			writeErr(w, http.StatusBadRequest, "Could not read the form. Please try again.")
+			return
+		}
+		buyer, msg := parseBuyer(in.PostName, in.ContactName, in.Rank, in.Email, in.Phone)
+		if msg != "" {
+			writeErr(w, http.StatusBadRequest, msg)
+			return
+		}
+		// Normalize plan selection (website required).
+		plans := []string{}
+		for _, k := range in.Plans {
+			k = strings.ToLower(strings.TrimSpace(k))
+			if k == "website" || k == "sms" {
+				plans = append(plans, k)
+			}
+		}
+		hasWebsite := false
+		for _, k := range plans {
+			if k == "website" {
+				hasWebsite = true
+			}
+		}
+		if !hasWebsite {
+			writeErr(w, http.StatusBadRequest, "Please keep the Website plan selected — it's required.")
+			return
+		}
+		totalCents := billing.PriceForPlans(plans)
+
+		// Best-effort: record the post as a Square customer so there's a
+		// ledger entry to attach the payment to when the check arrives.
+		if custID, err := c.CreateCustomer(buyer); err != nil {
+			log.Printf("check-signup: customer record failed (non-fatal) for %q: %v", buyer.PostName, err)
+		} else {
+			log.Printf("check-signup customer=%s", custID)
+		}
+
+		log.Printf("✓ check-signup: %q <%s> plans=%v total=$%d — awaiting mailed check",
+			buyer.PostName, buyer.Email, plans, totalCents/100)
+		notify(notifyURL, "check", buyer, plans)
 
 		writeJSON(w, http.StatusOK, map[string]any{
-			"ok":    true,
-			"plans": res.Plans,
+			"ok":         true,
+			"plans":      plans,
+			"totalCents": totalCents,
 		})
 	}
 }
 
-// notify fires a best-effort POST so the operator learns a post has paid and
-// the site can be taken live. No-op when NOTIFY_URL is unset.
-func notify(url string, b billing.Buyer, res *billing.CheckoutResult) {
+// parseBuyer validates the shared buyer fields; returns a user-facing message
+// (non-empty) on failure.
+func parseBuyer(postName, contactName, rank, email, phone string) (billing.Buyer, string) {
+	b := billing.Buyer{
+		PostName:    strings.TrimSpace(postName),
+		ContactName: strings.TrimSpace(contactName),
+		Rank:        strings.TrimSpace(rank),
+		Email:       strings.TrimSpace(email),
+		Phone:       strings.TrimSpace(phone),
+	}
+	if b.PostName == "" || b.ContactName == "" {
+		return b, "Please enter the post name and your name."
+	}
+	if !emailRE.MatchString(b.Email) {
+		return b, "Please enter a valid email address."
+	}
+	return b, ""
+}
+
+// notify fires a best-effort POST so the operator learns a post has signed up
+// (by card or check) and the site can be taken live. No-op when NOTIFY_URL is
+// unset. method is "card" or "check".
+func notify(url, method string, b billing.Buyer, plans []string) {
 	if url == "" {
 		return
 	}
+	subject := "LPW — new paid subscription (card): " + b.PostName
+	if method == "check" {
+		subject = "LPW — new signup (pay by CHECK, awaiting payment): " + b.PostName
+	}
 	go func() {
+		contact := b.ContactName
+		if b.Rank != "" {
+			contact = b.Rank + " " + b.ContactName
+		}
 		payload, _ := json.Marshal(map[string]any{
-			"_subject": "LPW — new paid subscription: " + b.PostName,
+			"_subject": subject,
+			"method":   method,
 			"post":     b.PostName,
-			"contact":  b.ContactName,
+			"contact":  contact,
 			"email":    b.Email,
-			"plans":    strings.Join(res.Plans, ", "),
-			"customer": res.CustomerID,
-			"subs":     strings.Join(res.SubscriptionIDs, ", "),
+			"phone":    b.Phone,
+			"plans":    strings.Join(plans, ", "),
 		})
 		hc := &http.Client{Timeout: 15 * time.Second}
 		req, err := http.NewRequest(http.MethodPost, url, bytes.NewReader(payload))
