@@ -37,7 +37,8 @@ func scaffoldContent(contentDir string, s *spec.Spec) ([]string, error) {
 			"Eligibility, dues, and how to join "+s.PostShortName+".",
 			"Membership overview. Copy the standard eligibility/why-join/apply pages from the reference instance and adjust dues if different."),
 
-		"events/_index.md": eventsIndex(),
+		"events/_index.md":        eventsIndex(),
+		"events/_content.gotmpl":  eventsAdapter(),
 
 		"family/_index.md": stub("The American Legion Family",
 			"The Auxiliary, Sons of the American Legion, and Legion Riders at "+s.PostShortName+".",
@@ -91,9 +92,57 @@ cascade:
     - EventCal
 ---
 
-Add events as individual files under ` + "`content/events/`" + ` — see the
-reference instance for the front-matter shape (date, endDate, location,
-contactName, contactPhone, description).
+Events are authored in the post's CRM (the Events screen), not in this repo.
+The content adapter next to this file builds the pages from the CRM's public
+events API at build time.
+`
+}
+
+// eventsAdapter is the Hugo content adapter that builds event pages from the
+// client CRM's public /api/events.json (params.eventsAPI in hugo.toml). Kept
+// in sync with the reference instance's content/events/_content.gotmpl.
+func eventsAdapter() string {
+	return `{{/* Build event pages from the CRM's events API (the CRM is the source of
+     truth — events are authored by the post's admin in the CRM, not in this
+     repo). URL set in hugo.toml [params] eventsAPI.
+
+     Failure mode is deliberate: if the API is unreachable or malformed, the
+     BUILD FAILS (errorf) rather than silently publishing a site with no
+     events. The deploy job only rsyncs successful builds, so the live site
+     keeps its last good event pages. */}}
+
+{{ $url := site.Params.eventsAPI }}
+{{ if not $url }}
+  {{ errorf "params.eventsAPI is not set — the events section cannot build" }}
+{{ end }}
+
+{{ $opts := dict "headers" (dict "User-Agent" "hugo-legion-site-build") }}
+{{ with resources.GetRemote $url $opts }}
+  {{ with .Err }}
+    {{ errorf "events API fetch failed (%s): %s" $url . }}
+  {{ else }}
+    {{ $feed := .Content | transform.Unmarshal }}
+    {{ range $feed.events }}
+      {{ $params := dict
+           "location"     (.location | default "")
+           "contactName"  (.contactName | default "")
+           "contactPhone" (.contactPhone | default "")
+           "description"  (.description | default "")
+           "eventType"    (.type | default "post")
+      }}
+      {{ with .endsAt }}{{ $params = merge $params (dict "endDate" .) }}{{ end }}
+      {{ $.AddPage (dict
+           "path"    .slug
+           "title"   .title
+           "dates"   (dict "date" (time.AsTime .startsAt))
+           "params"  $params
+           "content" (dict "mediaType" "text/markdown" "value" (.body | default ""))
+      ) }}
+    {{ end }}
+  {{ end }}
+{{ else }}
+  {{ errorf "events API returned no response (%s)" $url }}
+{{ end }}
 `
 }
 
