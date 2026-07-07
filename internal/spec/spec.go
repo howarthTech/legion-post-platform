@@ -108,6 +108,25 @@ func Load(path string) (*Spec, error) {
 	return &s, nil
 }
 
+// usStates maps two-letter abbreviations to full names, so a spec (or the
+// intake form) only has to supply `region` and we derive `regionLong`.
+var usStates = map[string]string{
+	"AL": "Alabama", "AK": "Alaska", "AZ": "Arizona", "AR": "Arkansas",
+	"CA": "California", "CO": "Colorado", "CT": "Connecticut", "DE": "Delaware",
+	"FL": "Florida", "GA": "Georgia", "HI": "Hawaii", "ID": "Idaho",
+	"IL": "Illinois", "IN": "Indiana", "IA": "Iowa", "KS": "Kansas",
+	"KY": "Kentucky", "LA": "Louisiana", "ME": "Maine", "MD": "Maryland",
+	"MA": "Massachusetts", "MI": "Michigan", "MN": "Minnesota", "MS": "Mississippi",
+	"MO": "Missouri", "MT": "Montana", "NE": "Nebraska", "NV": "Nevada",
+	"NH": "New Hampshire", "NJ": "New Jersey", "NM": "New Mexico", "NY": "New York",
+	"NC": "North Carolina", "ND": "North Dakota", "OH": "Ohio", "OK": "Oklahoma",
+	"OR": "Oregon", "PA": "Pennsylvania", "RI": "Rhode Island", "SC": "South Carolina",
+	"SD": "South Dakota", "TN": "Tennessee", "TX": "Texas", "UT": "Utah",
+	"VT": "Vermont", "VA": "Virginia", "WA": "Washington", "WV": "West Virginia",
+	"WI": "Wisconsin", "WY": "Wyoming", "DC": "District of Columbia",
+	"PR": "Puerto Rico", "GU": "Guam", "VI": "U.S. Virgin Islands",
+}
+
 func (s *Spec) applyDefaults() {
 	if s.Timezone == "" {
 		s.Timezone = "America/New_York"
@@ -118,22 +137,35 @@ func (s *Spec) applyDefaults() {
 	if s.CRMPort == 0 {
 		s.CRMPort = 8082
 	}
+	// A short name is just the full name unless the post gave a friendlier one.
+	if strings.TrimSpace(s.PostShortName) == "" {
+		s.PostShortName = s.PostName
+	}
+	// Derive the full state name from the abbreviation when not supplied.
+	if strings.TrimSpace(s.RegionLong) == "" {
+		if full, ok := usStates[strings.ToUpper(strings.TrimSpace(s.Region))]; ok {
+			s.RegionLong = full
+		}
+	}
+	// serviceArea defaults to the locality if unset.
+	if strings.TrimSpace(s.ServiceArea) == "" && s.Locality != "" {
+		s.ServiceArea = s.Locality
+	}
 }
 
 // Validate checks the required fields and basic formats. Returns the first
 // problem found (with all missing-required collected into one message).
 func (s *Spec) Validate() error {
 	var missing []string
+	// The genuine essentials. postShortName/regionLong/serviceArea are derived
+	// in applyDefaults; phone is optional (not every post publishes one).
 	req := map[string]string{
-		"client":        s.Client,
-		"domain":        s.Domain,
-		"postName":      s.PostName,
-		"postShortName": s.PostShortName,
-		"locality":      s.Locality,
-		"region":        s.Region,
-		"regionLong":    s.RegionLong,
-		"email":         s.Email,
-		"phone":         s.Phone,
+		"client":   s.Client,
+		"domain":   s.Domain,
+		"postName": s.PostName,
+		"locality": s.Locality,
+		"region":   s.Region,
+		"email":    s.Email,
 	}
 	for k, v := range req {
 		if strings.TrimSpace(v) == "" {
@@ -142,6 +174,9 @@ func (s *Spec) Validate() error {
 	}
 	if len(missing) > 0 {
 		return fmt.Errorf("spec missing required field(s): %s", strings.Join(missing, ", "))
+	}
+	if strings.TrimSpace(s.RegionLong) == "" {
+		return fmt.Errorf("region %q is not a recognized US state abbreviation; set regionLong explicitly", s.Region)
 	}
 	if !slugRE.MatchString(s.Client) {
 		return fmt.Errorf("client %q must be a slug (lowercase letters, digits, hyphens)", s.Client)

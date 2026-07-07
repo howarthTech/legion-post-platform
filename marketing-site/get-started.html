@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get started — Legion Post Platform</title>
+<meta name="description" content="Tell us about your American Legion post and we'll build your website. A few minutes now saves weeks of back-and-forth.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,8 61,38 93,38 67,57 77,88 50,69 23,88 33,57 7,38 39,38' fill='%23c9a445'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,500;10..72,700;10..72,900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0f1b31; --navy:#1a2c50; --navy-2:#24396b; --cream:#f5efdf; --paper:#fbf7ec;
+  --gold:#c9a445; --gold-bright:#e3bf5f; --red:#9e2b25;
+  --line:rgba(26,44,80,.18); --line-light:rgba(245,239,223,.22);
+  --display:"Big Shoulders",sans-serif; --serif:"Source Serif 4",Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+body{font-family:var(--serif);font-size:1.0625rem;line-height:1.6;color:var(--ink);background:var(--paper)}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .035 0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)'/%3E%3C/svg%3E")}
+a{color:var(--navy)}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:52rem;margin:0 auto;padding:0 1.25rem;position:relative;z-index:1}
+
+header.site{background:var(--navy);color:var(--cream);border-bottom:3px solid var(--gold)}
+header.site .wrap{max-width:72rem;display:flex;align-items:center;gap:1rem;min-height:4rem}
+.wordmark{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--cream)}
+.wordmark .star{color:var(--gold-bright);font-size:1.2rem}
+.wordmark b{font-family:var(--display);font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:1.1rem}
+.wordmark a{margin-left:auto;color:var(--cream);text-decoration:none;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:.8rem}
+
+.intro{padding:2.5rem 0 1rem}
+.intro .kicker{font-family:var(--display);font-weight:700;letter-spacing:.24em;text-transform:uppercase;font-size:.75rem;color:var(--red)}
+.intro h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:clamp(2rem,5vw,3rem);line-height:1;margin:.6rem 0 .8rem}
+.intro p{max-width:40rem;color:rgba(15,27,49,.82)}
+
+/* progress */
+.steps-bar{display:flex;flex-wrap:wrap;gap:.4rem;margin:1.5rem 0 2rem;list-style:none}
+.steps-bar li{flex:1 1 5rem;min-width:5rem;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:.68rem;color:var(--navy);border-top:4px solid var(--line);padding-top:.4rem;opacity:.5}
+.steps-bar li.active{opacity:1;border-top-color:var(--red)}
+.steps-bar li.done{opacity:1;border-top-color:var(--gold)}
+
+.panel{background:#fff;border:2px solid var(--ink);box-shadow:6px 7px 0 rgba(0,0,0,.18);padding:1.75rem;margin-bottom:2rem}
+.panel[hidden]{display:none}
+.panel h2{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:1.5rem;margin-bottom:.3rem}
+.panel .panel-sub{color:rgba(15,27,49,.72);font-size:.95rem;margin-bottom:1.4rem}
+
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.06em;font-size:.82rem;margin-bottom:.35rem}
+.field .opt{color:rgba(15,27,49,.5);font-weight:500}
+.field input,.field select,.field textarea{width:100%;font-family:var(--serif);font-size:1.0625rem;padding:.6rem .7rem;border:2px solid var(--ink);background:var(--paper);min-height:44px}
+.field textarea{min-height:6rem;resize:vertical}
+.field .hint{font-size:.82rem;color:rgba(15,27,49,.62);margin-top:.3rem}
+.field .err{font-size:.82rem;color:var(--red);font-weight:600;margin-top:.3rem}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:560px){.two-col{grid-template-columns:1fr}}
+
+.repeat-item{border:1px solid var(--line);border-left:4px solid var(--gold);padding:1rem 1rem .4rem;margin-bottom:1rem;position:relative}
+.repeat-item .remove{position:absolute;top:.5rem;right:.5rem;background:none;border:0;color:var(--red);font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:.7rem;cursor:pointer;letter-spacing:.06em}
+.add-btn{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.8rem;background:transparent;border:2px dashed var(--navy);color:var(--navy);padding:.6rem 1rem;cursor:pointer;width:100%}
+.add-btn:hover{background:rgba(26,44,80,.05)}
+
+.nav-row{display:flex;justify-content:space-between;gap:1rem;margin-top:1.6rem}
+.btn{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:.9rem;border:2px solid var(--gold);background:var(--gold);color:var(--ink);padding:.7rem 1.4rem;cursor:pointer;text-decoration:none;display:inline-block}
+.btn:hover{background:var(--gold-bright)}
+.btn.ghost{background:transparent;color:var(--navy);border-color:var(--navy)}
+.btn.ghost:hover{background:rgba(26,44,80,.05)}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+[hidden]{display:none!important}
+
+.review dl{display:grid;grid-template-columns:auto 1fr;gap:.4rem 1rem;font-size:.95rem}
+.review dt{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.04em;font-size:.72rem;color:var(--red);padding-top:.15rem}
+.review dd{margin:0}
+.review h3{font-family:var(--display);text-transform:uppercase;font-size:1rem;margin:1.2rem 0 .5rem;border-top:1px solid var(--line);padding-top:.8rem}
+.yaml-box{margin-top:1.2rem;background:var(--navy);color:var(--cream);padding:1rem;overflow-x:auto;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;line-height:1.5;white-space:pre;border-radius:2px}
+
+.done-panel{text-align:center;padding:2.5rem 1.75rem}
+.done-panel .big-star{font-size:3rem;color:var(--gold)}
+.done-panel h2{font-size:1.8rem}
+footer.site{background:var(--ink);color:rgba(245,239,223,.7);padding:2rem 0;font-size:.9rem;border-top:3px solid var(--gold);margin-top:2rem}
+footer.site .wrap{max-width:72rem}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);border:0}
+</style>
+</head>
+<body>
+<header class="site">
+  <div class="wrap">
+    <span class="wordmark"><span class="star" aria-hidden="true">★</span><b>Legion Post Platform</b></span>
+    <a href="/">← Back to site</a>
+  </div>
+</header>
+
+<div class="wrap">
+  <section class="intro">
+    <p class="kicker">Get started</p>
+    <h1>Tell us about your post</h1>
+    <p>Fill in what you know — you can leave anything blank and send it later. When
+    you finish, we get everything we need to start building your site, and you get a
+    copy for your records. Takes about five minutes.</p>
+  </section>
+
+  <ol class="steps-bar" id="steps-bar" aria-hidden="true">
+    <li data-step="0">Post</li>
+    <li data-step="1">Location</li>
+    <li data-step="2">Contact</li>
+    <li data-step="3">Officers</li>
+    <li data-step="4">Family</li>
+    <li data-step="5">Content</li>
+    <li data-step="6">Review</li>
+  </ol>
+
+  <form id="intake" novalidate>
+    <!-- STEP 0 — Post identity -->
+    <section class="panel" data-panel="0" aria-labelledby="s0">
+      <h2 id="s0">Your post</h2>
+      <p class="panel-sub">The basics that name and brand the site.</p>
+      <div class="field">
+        <label for="postName">Full post name <span aria-hidden="true">*</span></label>
+        <input id="postName" name="postName" required placeholder="Shanklin Attaway Post 5">
+        <p class="hint">The formal name, as it appears on your charter.</p>
+        <p class="err" hidden>Please enter your post name.</p>
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label for="postShortName">Short name <span class="opt">(optional)</span></label>
+          <input id="postShortName" name="postShortName" placeholder="Post 5">
+          <p class="hint">The conversational form used around the site.</p>
+        </div>
+        <div class="field">
+          <label for="charterYear">Charter year <span class="opt">(optional)</span></label>
+          <input id="charterYear" name="charterYear" inputmode="numeric" placeholder="1925">
+        </div>
+      </div>
+      <div class="field">
+        <label for="description">One-line description <span class="opt">(optional)</span></label>
+        <input id="description" name="description" placeholder="Serving veterans, families, and the Rome, Georgia community since 1925.">
+        <p class="hint">Used in search results and the page's meta description.</p>
+      </div>
+      <div class="field">
+        <label for="domain">Website address you want <span class="opt">(optional)</span></label>
+        <input id="domain" name="domain" placeholder="romelegion.org">
+        <p class="hint">A domain you own or want us to help you get. Leave blank if unsure.</p>
+      </div>
+    </section>
+
+    <!-- STEP 1 — Location -->
+    <section class="panel" data-panel="1" hidden aria-labelledby="s1">
+      <h2 id="s1">Where you are</h2>
+      <p class="panel-sub">Drives local search, maps, and the "serving ___" copy.</p>
+      <div class="two-col">
+        <div class="field">
+          <label for="locality">City / town <span aria-hidden="true">*</span></label>
+          <input id="locality" name="locality" required placeholder="Rome">
+          <p class="err" hidden>Please enter your city or town.</p>
+        </div>
+        <div class="field">
+          <label for="region">State <span aria-hidden="true">*</span></label>
+          <input id="region" name="region" required maxlength="2" placeholder="GA" style="text-transform:uppercase">
+          <p class="hint">Two-letter abbreviation.</p>
+          <p class="err" hidden>Please enter your state.</p>
+        </div>
+      </div>
+      <div class="field">
+        <label for="serviceArea">Service area <span class="opt">(optional)</span></label>
+        <input id="serviceArea" name="serviceArea" placeholder="Rome and Floyd County">
+      </div>
+      <div class="field">
+        <label for="timezone">Time zone</label>
+        <select id="timezone" name="timezone">
+          <option value="America/New_York">Eastern (New York)</option>
+          <option value="America/Chicago">Central (Chicago)</option>
+          <option value="America/Denver">Mountain (Denver)</option>
+          <option value="America/Phoenix">Mountain, no DST (Phoenix)</option>
+          <option value="America/Los_Angeles">Pacific (Los Angeles)</option>
+          <option value="America/Anchorage">Alaska</option>
+          <option value="Pacific/Honolulu">Hawaii</option>
+        </select>
+        <p class="hint">Used so event and reminder times are correct.</p>
+      </div>
+    </section>
+
+    <!-- STEP 2 — Contact & meeting -->
+    <section class="panel" data-panel="2" hidden aria-labelledby="s2">
+      <h2 id="s2">Contact &amp; meetings</h2>
+      <p class="panel-sub">How the public reaches you and when you meet.</p>
+      <div class="two-col">
+        <div class="field">
+          <label for="email">Public email <span aria-hidden="true">*</span></label>
+          <input id="email" name="email" type="email" required placeholder="post@example.org">
+          <p class="err" hidden>Please enter a valid email.</p>
+        </div>
+        <div class="field">
+          <label for="phone">Public phone <span class="opt">(optional)</span></label>
+          <input id="phone" name="phone" type="tel" placeholder="(706) 555-1234">
+        </div>
+      </div>
+      <div class="field">
+        <label for="mailingAddress">Mailing address <span class="opt">(optional)</span></label>
+        <input id="mailingAddress" name="mailingAddress" placeholder="P.O. Box 945, Rome, GA 30162">
+      </div>
+      <div class="field">
+        <label for="meetingLocation">Where you meet <span class="opt">(optional)</span></label>
+        <input id="meetingLocation" name="meetingLocation" placeholder="The Farm — 493 Jones Bend Rd NE, Rome, GA 30165">
+      </div>
+      <div class="field">
+        <label for="meetingSchedule">When you meet <span class="opt">(optional)</span></label>
+        <input id="meetingSchedule" name="meetingSchedule" placeholder="2nd Monday of each month at 6:00 PM">
+      </div>
+      <div class="field">
+        <label for="facebookURL">Facebook page or group URL <span class="opt">(optional)</span></label>
+        <input id="facebookURL" name="facebookURL" type="url" placeholder="https://www.facebook.com/...">
+      </div>
+    </section>
+
+    <!-- STEP 3 — Officers -->
+    <section class="panel" data-panel="3" hidden aria-labelledby="s3">
+      <h2 id="s3">Post officers</h2>
+      <p class="panel-sub">These appear on your About page. Add as many as you like —
+      you can also fill this in later in your admin.</p>
+      <div id="officers"></div>
+      <button type="button" class="add-btn" data-add="officer">+ Add an officer</button>
+    </section>
+
+    <!-- STEP 4 — Legion family -->
+    <section class="panel" data-panel="4" hidden aria-labelledby="s4">
+      <h2 id="s4">Legion family contacts</h2>
+      <p class="panel-sub">Auxiliary, Sons of the American Legion, Legion Riders —
+      whoever handles membership for each. Optional.</p>
+      <div id="family"></div>
+      <button type="button" class="add-btn" data-add="family">+ Add a family contact</button>
+    </section>
+
+    <!-- STEP 5 — Content & photos -->
+    <section class="panel" data-panel="5" hidden aria-labelledby="s5">
+      <h2 id="s5">Content &amp; photos</h2>
+      <p class="panel-sub">Anything you can share now helps. All optional — you'll be
+      able to add and edit everything in your admin once your site is set up.</p>
+      <div class="field">
+        <label for="history">Post history <span class="opt">(optional)</span></label>
+        <textarea id="history" name="history" placeholder="Who was your post named for? When was it founded? A few sentences is plenty."></textarea>
+      </div>
+      <div class="field">
+        <label for="rental">Hall / facility rental info <span class="opt">(optional)</span></label>
+        <textarea id="rental" name="rental" placeholder="Do you rent a hall? Rough pricing, capacity, who to contact."></textarea>
+      </div>
+      <div class="field">
+        <label for="photosNote">Photos <span class="opt">(optional)</span></label>
+        <textarea id="photosNote" name="photosNote" placeholder="Tell us what photos you have (events, the building, officers) and how to get them to us — a Google Drive or Dropbox link works great."></textarea>
+        <p class="hint">Don't attach photos here — just describe or link them, and we'll follow up.</p>
+      </div>
+      <div class="field">
+        <label for="anythingElse">Anything else <span class="opt">(optional)</span></label>
+        <textarea id="anythingElse" name="anythingElse" placeholder="Special programs, a Riders chapter, scholarships, anything that makes your post yours."></textarea>
+      </div>
+    </section>
+
+    <!-- STEP 6 — Review & submit -->
+    <section class="panel" data-panel="6" hidden aria-labelledby="s6">
+      <h2 id="s6">Review &amp; send</h2>
+      <p class="panel-sub">Here's what we'll receive. Your contact info is how we'll reach you.</p>
+      <div class="two-col">
+        <div class="field">
+          <label for="yourName">Your name <span aria-hidden="true">*</span></label>
+          <input id="yourName" name="yourName" required placeholder="Albert Hollis">
+          <p class="err" hidden>Please enter your name.</p>
+        </div>
+        <div class="field">
+          <label for="yourRole">Your role <span class="opt">(optional)</span></label>
+          <input id="yourRole" name="yourRole" placeholder="Commander">
+        </div>
+      </div>
+      <div class="field">
+        <label for="yourEmail">Your email <span aria-hidden="true">*</span></label>
+        <input id="yourEmail" name="yourEmail" type="email" required placeholder="you@example.com">
+        <p class="err" hidden>Please enter a valid email so we can reply.</p>
+      </div>
+
+      <div class="review" id="review-summary"></div>
+
+      <details style="margin-top:1.2rem">
+        <summary style="cursor:pointer;font-family:var(--display);font-weight:700;text-transform:uppercase;font-size:.8rem;letter-spacing:.06em">Show the technical spec (for the operator)</summary>
+        <div class="yaml-box" id="yaml-preview"></div>
+      </details>
+
+      <p class="err" id="submit-err" hidden style="margin-top:1rem"></p>
+    </section>
+
+    <div class="nav-row">
+      <button type="button" class="btn ghost" id="back" hidden>← Back</button>
+      <span style="flex:1"></span>
+      <button type="button" class="btn" id="next">Continue →</button>
+      <button type="submit" class="btn" id="submit" hidden>Send it in ★</button>
+    </div>
+  </form>
+
+  <!-- Success -->
+  <section class="panel done-panel" id="done" hidden>
+    <div class="big-star" aria-hidden="true">★</div>
+    <h2>Got it — thank you.</h2>
+    <p>We've received your post's details and will be in touch shortly at the email
+    you gave us, usually with a first look at your new site.</p>
+    <p style="margin-top:1rem"><a class="btn" id="download-spec" href="#">Download a copy</a></p>
+    <p style="margin-top:1.5rem"><a href="/">Return to the main site</a></p>
+  </section>
+</div>
+
+<footer class="site"><div class="wrap">
+  <p>★ Legion Post Platform — a <a href="https://howarth.tech/" style="color:var(--gold-bright)">Howarth Tech Solutions</a> product.
+  Not affiliated with, endorsed by, or sponsored by The American Legion.</p>
+</div></footer>
+
+<script>
+// --- Formspree endpoint (shared with the contact form for now) ---
+var FORMSPREE = "https://formspree.io/f/xrewgjon";
+
+var TOTAL_STEPS = 7;
+var step = 0;
+var form = document.getElementById("intake");
+var panels = Array.from(document.querySelectorAll("[data-panel]"));
+var barItems = Array.from(document.querySelectorAll("#steps-bar li"));
+var backBtn = document.getElementById("back");
+var nextBtn = document.getElementById("next");
+var submitBtn = document.getElementById("submit");
+
+// ---- repeatable rows (officers, family) ----
+function officerRow() {
+  var d = document.createElement("div");
+  d.className = "repeat-item";
+  d.dataset.kind = "officer";
+  d.innerHTML =
+    '<button type="button" class="remove" aria-label="Remove">Remove</button>' +
+    '<div class="two-col">' +
+      '<div class="field"><label>Role</label><input data-f="role" placeholder="Commander"></div>' +
+      '<div class="field"><label>Name</label><input data-f="name" placeholder="Albert Hollis"></div>' +
+    '</div>' +
+    '<div class="two-col">' +
+      '<div class="field"><label>Phone <span class="opt">(optional)</span></label><input data-f="phone" type="tel" placeholder="(706) 555-1234"></div>' +
+      '<div class="field"><label>Email <span class="opt">(optional)</span></label><input data-f="email" type="email" placeholder="officer@example.org"></div>' +
+    '</div>';
+  return d;
+}
+function familyRow() {
+  var d = document.createElement("div");
+  d.className = "repeat-item";
+  d.dataset.kind = "family";
+  d.innerHTML =
+    '<button type="button" class="remove" aria-label="Remove">Remove</button>' +
+    '<div class="two-col">' +
+      '<div class="field"><label>Group / role</label><input data-f="role" placeholder="Auxiliary Membership"></div>' +
+      '<div class="field"><label>Name</label><input data-f="name" placeholder="Louise Burgess"></div>' +
+    '</div>' +
+    '<div class="field"><label>Phone <span class="opt">(optional)</span></label><input data-f="phone" type="tel" placeholder="(706) 555-1234"></div>';
+  return d;
+}
+document.querySelectorAll("[data-add]").forEach(function (b) {
+  b.addEventListener("click", function () {
+    var host = b.previousElementSibling;
+    host.appendChild(b.dataset.add === "officer" ? officerRow() : familyRow());
+  });
+});
+document.addEventListener("click", function (e) {
+  if (e.target.classList.contains("remove")) e.target.closest(".repeat-item").remove();
+});
+// seed one of each so the section isn't empty
+document.getElementById("officers").appendChild(officerRow());
+document.getElementById("family").appendChild(familyRow());
+
+// ---- navigation ----
+function show(n) {
+  step = Math.max(0, Math.min(TOTAL_STEPS - 1, n));
+  panels.forEach(function (p) { p.hidden = +p.dataset.panel !== step; });
+  barItems.forEach(function (li) {
+    var s = +li.dataset.step;
+    li.classList.toggle("active", s === step);
+    li.classList.toggle("done", s < step);
+  });
+  backBtn.hidden = step === 0;
+  nextBtn.hidden = step === TOTAL_STEPS - 1;
+  submitBtn.hidden = step !== TOTAL_STEPS - 1;
+  if (step === TOTAL_STEPS - 1) renderReview();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  var h = panels[step].querySelector("h2"); if (h) h.setAttribute("tabindex", "-1"), h.focus();
+}
+function validStep() {
+  var panel = panels[step];
+  var ok = true;
+  panel.querySelectorAll("[required]").forEach(function (inp) {
+    var bad = !inp.value.trim() || (inp.type === "email" && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(inp.value));
+    var err = inp.parentElement.querySelector(".err");
+    if (err) err.hidden = !bad;
+    if (bad && ok) inp.focus();
+    if (bad) ok = false;
+  });
+  return ok;
+}
+nextBtn.addEventListener("click", function () { if (validStep()) show(step + 1); });
+backBtn.addEventListener("click", function () { show(step - 1); });
+
+// ---- data gathering ----
+function val(id) { var el = document.getElementById(id); return el ? el.value.trim() : ""; }
+function collectRepeat(hostId) {
+  return Array.from(document.getElementById(hostId).children).map(function (row) {
+    var o = {};
+    row.querySelectorAll("[data-f]").forEach(function (i) { o[i.dataset.f] = i.value.trim(); });
+    return o;
+  }).filter(function (o) { return o.name || o.role; });
+}
+function slugify(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "new-post";
+}
+function collect() {
+  return {
+    postName: val("postName"), postShortName: val("postShortName"), charterYear: val("charterYear"),
+    description: val("description"), domain: val("domain"),
+    locality: val("locality"), region: val("region").toUpperCase(), serviceArea: val("serviceArea"),
+    timezone: val("timezone"),
+    email: val("email"), phone: val("phone"), mailingAddress: val("mailingAddress"),
+    meetingLocation: val("meetingLocation"), meetingSchedule: val("meetingSchedule"), facebookURL: val("facebookURL"),
+    officers: collectRepeat("officers"), family: collectRepeat("family"),
+    history: val("history"), rental: val("rental"), photosNote: val("photosNote"), anythingElse: val("anythingElse"),
+    yourName: val("yourName"), yourRole: val("yourRole"), yourEmail: val("yourEmail")
+  };
+}
+
+// ---- YAML generation (matches the provisioner spec schema) ----
+function yq(s) { // quote a scalar safely
+  if (s === "" || s == null) return '""';
+  return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"';
+}
+function buildYAML(d) {
+  var slug = slugify(d.postShortName || d.postName);
+  var L = [];
+  L.push("# Generated by the Legion Post Platform intake form.");
+  L.push("# Operator: review, set siteRepo/crmPort, then: provision -spec this.yaml");
+  L.push("");
+  L.push("client: " + yq(slug));
+  L.push("domain: " + yq(d.domain || (slug + ".example.org  # TODO: confirm domain")));
+  L.push("postName: " + yq(d.postName));
+  if (d.postShortName) L.push("postShortName: " + yq(d.postShortName));
+  if (d.charterYear) L.push("charterYear: " + (/^\d+$/.test(d.charterYear) ? d.charterYear : yq(d.charterYear)));
+  if (d.description) L.push("description: " + yq(d.description));
+  L.push("");
+  L.push("locality: " + yq(d.locality));
+  L.push("region: " + yq(d.region));
+  if (d.serviceArea) L.push("serviceArea: " + yq(d.serviceArea));
+  L.push("timezone: " + yq(d.timezone || "America/New_York"));
+  L.push("");
+  L.push("email: " + yq(d.email));
+  if (d.phone) L.push("phone: " + yq(d.phone));
+  if (d.mailingAddress) L.push("mailingAddress: " + yq(d.mailingAddress));
+  if (d.meetingLocation) L.push("meetingLocation: " + yq(d.meetingLocation));
+  if (d.meetingSchedule) L.push("meetingSchedule: " + yq(d.meetingSchedule));
+  if (d.facebookURL) L.push("facebookURL: " + yq(d.facebookURL));
+  L.push("");
+  L.push("# Operator fills these:");
+  L.push("# crmPort: 8082");
+  L.push("# siteRepo: howarthTech/<repo>");
+  if (d.officers.length) {
+    L.push("");
+    L.push("officers:");
+    d.officers.forEach(function (o, i) {
+      L.push("  - role: " + yq(o.role));
+      L.push("    name: " + yq(o.name));
+      L.push("    phone: " + yq(o.phone || ""));
+      L.push("    email: " + yq(o.email || ""));
+      L.push("    weight: " + ((i + 1) * 10));
+    });
+  }
+  if (d.family.length) {
+    L.push("");
+    L.push("familyContacts:");
+    d.family.forEach(function (o, i) {
+      L.push("  - role: " + yq(o.role));
+      L.push("    name: " + yq(o.name));
+      L.push("    phone: " + yq(o.phone || ""));
+      L.push("    weight: " + ((i + 1) * 10));
+    });
+  }
+  L.push("");
+  return L.join("\n");
+}
+
+function renderReview() {
+  var d = collect();
+  var esc = function (s) { return (s || "—").replace(/&/g, "&amp;").replace(/</g, "&lt;"); };
+  var rows = [
+    ["Post", d.postName + (d.postShortName ? " (" + d.postShortName + ")" : "")],
+    ["Location", [d.locality, d.region].filter(Boolean).join(", ")],
+    ["Email", d.email], ["Phone", d.phone],
+    ["Meets", [d.meetingSchedule, d.meetingLocation].filter(Boolean).join(" · ")],
+    ["Officers", d.officers.length ? d.officers.map(function (o) { return o.name + (o.role ? " (" + o.role + ")" : ""); }).join(", ") : "—"],
+    ["Family", d.family.length ? d.family.map(function (o) { return o.name; }).join(", ") : "—"]
+  ];
+  var html = "<h3>Summary</h3><dl>";
+  rows.forEach(function (r) { html += "<dt>" + r[0] + "</dt><dd>" + esc(r[1]) + "</dd>"; });
+  html += "</dl>";
+  document.getElementById("review-summary").innerHTML = html;
+  document.getElementById("yaml-preview").textContent = buildYAML(d);
+}
+
+// ---- submit ----
+function downloadYAML(d) {
+  var blob = new Blob([buildYAML(d)], { type: "text/yaml" });
+  var a = document.getElementById("download-spec");
+  a.href = URL.createObjectURL(blob);
+  a.download = slugify(d.postShortName || d.postName) + ".yaml";
+}
+form.addEventListener("submit", function (ev) {
+  ev.preventDefault();
+  if (!validStep()) return;
+  var d = collect();
+  var errEl = document.getElementById("submit-err");
+  submitBtn.disabled = true; submitBtn.textContent = "Sending…";
+  var payload = {
+    _subject: "Legion Post Platform — new post intake: " + d.postName,
+    submittedBy: d.yourName + (d.yourRole ? " (" + d.yourRole + ")" : ""),
+    replyTo: d.yourEmail,
+    post: d.postName, location: d.locality + ", " + d.region,
+    history: d.history, rental: d.rental, photos: d.photosNote, notes: d.anythingElse,
+    spec_yaml: buildYAML(d)
+  };
+  fetch(FORMSPREE, {
+    method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+    body: JSON.stringify(payload)
+  }).then(function (r) {
+    if (!r.ok) throw new Error("bad status");
+    downloadYAML(d);
+    form.hidden = true;
+    document.getElementById("steps-bar").hidden = true;
+    document.querySelector(".intro").hidden = true;
+    document.getElementById("done").hidden = false;
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }).catch(function () {
+    errEl.textContent = "Something went wrong sending the form. Please email us directly, or download your details below and send them over.";
+    errEl.hidden = false;
+    downloadYAML(d);
+    submitBtn.disabled = false; submitBtn.textContent = "Send it in ★";
+  });
+});
+
+show(0);
+</script>
+</body>
+</html>
