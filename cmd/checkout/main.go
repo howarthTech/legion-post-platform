@@ -17,6 +17,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/subtle"
 	"encoding/json"
 	"log"
 	"net/http"
@@ -56,11 +57,13 @@ func main() {
 		log.Println("ℹ email: not configured (RESEND_API_KEY/EMAIL_FROM) — receipts/notices shown on-screen only, operator alerts via NOTIFY_URL")
 	}
 	oc := &opContext{mailer: mailer, operatorEmail: operatorEmail, notifyURL: notifyURL}
+	operatorToken := os.Getenv("OPERATOR_TOKEN") // gates /api/go-live
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /api/config", configHandler(client))
 	mux.HandleFunc("POST /api/checkout", checkoutHandler(client, oc))
 	mux.HandleFunc("POST /api/check-signup", checkSignupHandler(client, oc))
+	mux.HandleFunc("POST /api/go-live", goLiveHandler(oc, operatorToken))
 	mux.HandleFunc("GET /api/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/plain")
 		_, _ = w.Write([]byte("ok"))
@@ -217,6 +220,48 @@ func checkSignupHandler(c *billing.Client, oc *opContext) http.HandlerFunc {
 			"plans":      plans,
 			"totalCents": totalCents,
 		})
+	}
+}
+
+// goLiveHandler emails a post that their site is published. Operator-only:
+// gated by the X-Operator-Token header matching OPERATOR_TOKEN (constant-time),
+// since this endpoint sends mail from the domain to an arbitrary address.
+func goLiveHandler(oc *opContext, token string) http.HandlerFunc {
+	type req struct {
+		PostName string `json:"postName"`
+		Email    string `json:"email"`
+		SiteURL  string `json:"siteURL"`
+	}
+	return func(w http.ResponseWriter, r *http.Request) {
+		got := r.Header.Get("X-Operator-Token")
+		if token == "" || subtle.ConstantTimeCompare([]byte(got), []byte(token)) != 1 {
+			writeErr(w, http.StatusForbidden, "forbidden")
+			return
+		}
+		var in req
+		if err := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<16)).Decode(&in); err != nil {
+			writeErr(w, http.StatusBadRequest, "bad request")
+			return
+		}
+		in.PostName = strings.TrimSpace(in.PostName)
+		in.Email = strings.TrimSpace(in.Email)
+		in.SiteURL = strings.TrimSpace(in.SiteURL)
+		if in.PostName == "" || !emailRE.MatchString(in.Email) || in.SiteURL == "" {
+			writeErr(w, http.StatusBadRequest, "postName, a valid email, and siteURL are required")
+			return
+		}
+		if !oc.mailer.Enabled() {
+			writeErr(w, http.StatusServiceUnavailable, "email not configured")
+			return
+		}
+		if err := oc.mailer.Send(in.Email, "Your Legion Post website is live",
+			email.GoLiveHTML(in.PostName, in.SiteURL)); err != nil {
+			log.Printf("go-live email to %s failed: %v", in.Email, err)
+			writeErr(w, http.StatusBadGateway, "email send failed")
+			return
+		}
+		log.Printf("✓ go-live email sent: %q -> %s (%s)", in.PostName, in.Email, in.SiteURL)
+		writeJSON(w, http.StatusOK, map[string]any{"ok": true})
 	}
 }
 

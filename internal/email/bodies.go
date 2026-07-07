@@ -60,6 +60,16 @@ func CheckInstructionsHTML(postName, who string, totalCents int64, payee string,
 	return layout("Almost there — mail your check", inner)
 }
 
+// GoLiveHTML tells a post their website has been published.
+func GoLiveHTML(postName, siteURL string) string {
+	url := html.EscapeString(siteURL)
+	inner := p("Great news — the website for <strong>"+html.EscapeString(postName)+"</strong> is now live and online.") +
+		`<p style="margin:6px 0 18px"><a href="` + url + `" style="display:inline-block;background:#c9a445;color:#0f1b31;font-family:Arial,Helvetica,sans-serif;font-weight:bold;text-transform:uppercase;letter-spacing:1px;text-decoration:none;padding:12px 22px">Visit your site &rarr;</a></p>` +
+		p(`<span style="color:#595d65;font-size:14px">` + url + `</span>`) +
+		p("Share the link with your members and community. Need a change to your site — new officers, an event, updated hours? Just reply to this email and we'll take care of it.")
+	return layout("Your website is live", inner)
+}
+
 // OperatorHTML is the internal alert to the operator when a post signs up.
 func OperatorHTML(method, postName, who, buyerEmail, phone, planSummary string, totalCents int64) string {
 	action := "Card payment received — build the site and take it live."
