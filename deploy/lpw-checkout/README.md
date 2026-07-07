@@ -55,11 +55,20 @@ legionpostwebsites.com {
 `caddy validate --config /etc/caddy/Caddyfile && systemctl reload caddy`
 
 ## 4. Sandbox test (the gate before real use)
-With `SQUARE_ENV=sandbox`, open https://legionpostwebsites.com/activate and pay
-with Square's test card: `4111 1111 1111 1111`, any future expiry, any CVV, any
-ZIP. Then confirm in the Square **sandbox** dashboard that a customer, a card on
-file, and an active subscription were created. Check `docker logs lpw-checkout`
-for the `✓ checkout` line.
+With `SQUARE_ENV=sandbox`, open https://legionpostwebsites.com/activate and pay.
+
+**Use the Mastercard test card `5105 1051 0510 5100`** (any future expiry, any
+CVV, any ZIP) — NOT the Visa `4111 1111 1111 1111`. This is a known Square
+**sandbox** bug: subscriptions created with the Visa sandbox card (and the
+`cnon:card-nonce-ok` nonce) are auto-DEACTIVATED within seconds without an
+invoice, while the Mastercard works. It does NOT affect production or real
+cards. (Verified 2026-07-07: with the Visa nonce the customer + card store fine,
+the card charges fine one-time, the plan is valid, the subscription is created
+ACTIVE — then Square deactivates it. Mastercard subscriptions stay ACTIVE.)
+
+Then confirm in the Square **sandbox** dashboard that a customer, a card on file,
+and an ACTIVE subscription were created. Check `docker logs lpw-checkout` for
+the `✓ checkout` line.
 
 ## 5. Go production
 Swap `/srv/secrets/square.env` to the Production-tab values (`SQUARE_ENV=production`),
