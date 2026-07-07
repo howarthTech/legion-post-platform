@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Activate your site — Legion Post Websites</title>
+<meta name="description" content="Start your Legion Post Websites subscription and take your post's site live.">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,8 61,38 93,38 67,57 77,88 50,69 23,88 33,57 7,38 39,38' fill='%23c9a445'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders:opsz,wght@10..72,700;10..72,900&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0f1b31;--navy:#1a2c50;--cream:#f5efdf;--paper:#fbf7ec;--gold:#c9a445;--gold-bright:#e3bf5f;--red:#9e2b25;--green:#2f7a3e;--line:rgba(26,44,80,.18);--display:"Big Shoulders",sans-serif;--serif:"Source Serif 4",Georgia,serif}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:var(--serif);font-size:1.05rem;line-height:1.6;color:var(--ink);background:var(--paper)}
+a{color:var(--navy)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+header.site{background:var(--navy);color:var(--cream);border-bottom:3px solid var(--gold)}
+.wrap{max-width:40rem;margin:0 auto;padding:0 1.25rem}
+header.site .wrap{display:flex;align-items:center;gap:1rem;min-height:4rem}
+.wordmark{display:flex;align-items:center;gap:.6rem;text-decoration:none;color:var(--cream)}
+.wordmark .star{color:var(--gold-bright);font-size:1.2rem}
+.wordmark b{font-family:var(--display);font-weight:900;text-transform:uppercase;letter-spacing:.06em;font-size:1.1rem}
+main{padding:2.5rem 0 3rem}
+h1{font-family:var(--display);font-weight:900;text-transform:uppercase;font-size:2.2rem;line-height:1;margin-bottom:.5rem}
+.lead{color:rgba(15,27,49,.75);margin-bottom:1.8rem}
+.card{background:#fff;border:2px solid var(--ink);box-shadow:6px 7px 0 rgba(0,0,0,.18);padding:1.6rem;margin-bottom:1.5rem}
+.plan{display:flex;align-items:flex-start;gap:.8rem;padding:.7rem 0;border-bottom:1px solid var(--line)}
+.plan:last-child{border-bottom:0}
+.plan input{margin-top:.35rem;width:1.15rem;height:1.15rem;flex:0 0 auto}
+.plan .pd{flex:1}
+.plan .pn{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.04em}
+.plan .px{font-family:var(--display);font-weight:900;color:var(--navy);float:right}
+.plan .psub{font-size:.88rem;color:rgba(15,27,49,.65)}
+.total{display:flex;justify-content:space-between;align-items:baseline;margin-top:1rem;padding-top:1rem;border-top:2px solid var(--ink);font-family:var(--display);text-transform:uppercase}
+.total .amt{font-weight:900;font-size:1.8rem;color:var(--navy)}
+.field{margin-bottom:1rem}
+.field label{display:block;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-size:.8rem;margin-bottom:.35rem}
+.field input{width:100%;font-family:var(--serif);font-size:1.05rem;padding:.6rem .7rem;border:2px solid var(--ink);background:var(--paper);min-height:44px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:520px){.two{grid-template-columns:1fr}}
+#card-container{border:2px solid var(--ink);background:#fff;padding:.5rem .6rem;min-height:52px;border-radius:2px}
+.pay-btn{width:100%;margin-top:1.4rem;font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:1.05rem;border:2px solid var(--gold);background:var(--gold);color:var(--ink);padding:.9rem;cursor:pointer}
+.pay-btn:hover{background:var(--gold-bright)}
+.pay-btn[disabled]{opacity:.5;cursor:not-allowed}
+.msg{margin-top:1rem;padding:.8rem 1rem;font-weight:600;font-size:.95rem;border:2px solid}
+.msg.err{border-color:var(--red);color:var(--red);background:#fbeceb}
+.msg.ok{border-color:var(--green);color:var(--green);background:#eaf5ec}
+.fine{font-size:.82rem;color:rgba(15,27,49,.6);margin-top:1rem;line-height:1.5}
+.secure{font-size:.82rem;color:rgba(15,27,49,.6);margin-top:.6rem}
+.done{text-align:center;padding:2.5rem 1rem}
+.done .big{font-size:3rem;color:var(--gold)}
+footer.site{background:var(--ink);color:rgba(245,239,223,.7);padding:1.6rem 0;font-size:.85rem;border-top:3px solid var(--gold);margin-top:2rem}
+footer.site a{color:var(--gold-bright)}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <a class="wordmark" href="/"><span class="star" aria-hidden="true">★</span><b>Legion Post Websites</b></a>
+</div></header>
+
+<main class="wrap">
+  <div id="checkout">
+    <h1>Take your site live</h1>
+    <p class="lead">Start your annual subscription to publish your post's website.
+    You can cancel anytime; your card is billed once a year.</p>
+
+    <form id="pay-form">
+      <div class="card">
+        <div id="plans"><p class="psub">Loading plans…</p></div>
+        <div class="total"><span>Total today</span><span class="amt" id="total">—</span></div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label for="postName">Post name</label>
+          <input id="postName" name="postName" required placeholder="American Legion Post 5">
+        </div>
+        <div class="two">
+          <div class="field">
+            <label for="contactName">Your name</label>
+            <input id="contactName" name="contactName" required placeholder="Albert Hollis">
+          </div>
+          <div class="field">
+            <label for="phone">Phone <span style="font-weight:500;color:rgba(15,27,49,.5)">(optional)</span></label>
+            <input id="phone" name="phone" type="tel" placeholder="(706) 555-1234">
+          </div>
+        </div>
+        <div class="field">
+          <label for="email">Email (for your receipt)</label>
+          <input id="email" name="email" type="email" required placeholder="you@example.org">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="field">
+          <label for="card-container">Card</label>
+          <div id="card-container"></div>
+        </div>
+        <p class="secure">🔒 Your card is entered directly with Square and never touches our servers.</p>
+        <button type="submit" class="pay-btn" id="pay-btn" disabled>Loading secure checkout…</button>
+        <div class="msg err" id="err" hidden></div>
+      </div>
+
+      <p class="fine">By subscribing you agree to our
+      <a href="/terms">Terms</a> and <a href="/privacy">Privacy Policy</a>.
+      Subscriptions renew annually until cancelled. Contact
+      support@legionpostwebsites.com to cancel or for help.</p>
+    </form>
+  </div>
+
+  <section id="done" class="done" hidden>
+    <div class="big" aria-hidden="true">★</div>
+    <h1>You're all set</h1>
+    <p class="lead" id="done-msg">Payment received — thank you! We'll take your
+    site live shortly and email you when it's published.</p>
+    <p><a href="/">Return to the main site</a></p>
+  </section>
+</main>
+
+<footer class="site"><div class="wrap">
+  <p>★ Legion Post Websites — a <a href="https://howarth.tech/">Howarth Tech Solutions</a> product.
+  · <a href="/privacy">Privacy</a> · <a href="/terms">SMS Terms</a></p>
+</div></footer>
+
+<script>
+(function () {
+  var API = "/api";
+  var form = document.getElementById("pay-form");
+  var payBtn = document.getElementById("pay-btn");
+  var errEl = document.getElementById("err");
+  var plansEl = document.getElementById("plans");
+  var totalEl = document.getElementById("total");
+  var card, config, selected = {};
+
+  function money(cents) { return "$" + (cents / 100).toFixed(0); }
+  function showErr(m) { errEl.textContent = m; errEl.hidden = false; }
+  function clearErr() { errEl.hidden = true; }
+
+  function recalcTotal() {
+    var t = 0;
+    config.plans.forEach(function (p) { if (selected[p.key]) t += p.priceCents; });
+    totalEl.textContent = money(t) + "/yr";
+  }
+
+  function renderPlans() {
+    plansEl.innerHTML = "";
+    config.plans.forEach(function (p) {
+      var required = p.key === "website";
+      selected[p.key] = required || p.key === "website";
+      var row = document.createElement("label");
+      row.className = "plan";
+      row.innerHTML =
+        '<input type="checkbox" ' + (selected[p.key] ? "checked" : "") + (required ? " disabled" : "") + '>' +
+        '<span class="pd"><span class="px">' + money(p.priceCents) + '/yr</span>' +
+        '<span class="pn">' + p.name.replace("Legion Post ", "") + '</span>' +
+        '<span class="psub">' + (required ? "Required — your public website, hosting, and updates." :
+          "Optional — SMS event reminders to your members.") + '</span></span>';
+      var cb = row.querySelector("input");
+      if (!required) cb.addEventListener("change", function () { selected[p.key] = cb.checked; recalcTotal(); });
+      plansEl.appendChild(row);
+    });
+    recalcTotal();
+  }
+
+  function loadSquareSdk(env) {
+    return new Promise(function (resolve, reject) {
+      var src = env === "production"
+        ? "https://web.squarecdn.com/v1/square.js"
+        : "https://sandbox.web.squarecdn.com/v1/square.js";
+      var s = document.createElement("script");
+      s.src = src; s.onload = resolve; s.onerror = function () { reject(new Error("sdk")); };
+      document.head.appendChild(s);
+    });
+  }
+
+  async function init() {
+    try {
+      config = await fetch(API + "/config").then(function (r) { if (!r.ok) throw 0; return r.json(); });
+    } catch (e) {
+      plansEl.innerHTML = '<p class="psub">Checkout isn\'t available right now. Please contact us to activate your site.</p>';
+      payBtn.textContent = "Checkout unavailable";
+      return;
+    }
+    renderPlans();
+    try {
+      await loadSquareSdk(config.env);
+      var payments = window.Square.payments(config.applicationId, config.locationId);
+      card = await payments.card();
+      await card.attach("#card-container");
+      payBtn.disabled = false;
+      payBtn.textContent = "Subscribe & take my site live";
+    } catch (e) {
+      showErr("Couldn't load the secure card form. Please refresh, or contact us.");
+    }
+  }
+
+  form.addEventListener("submit", async function (ev) {
+    ev.preventDefault();
+    clearErr();
+    if (!card) return;
+    var postName = document.getElementById("postName").value.trim();
+    var contactName = document.getElementById("contactName").value.trim();
+    var email = document.getElementById("email").value.trim();
+    if (!postName || !contactName || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+      showErr("Please fill in the post name, your name, and a valid email.");
+      return;
+    }
+    payBtn.disabled = true; payBtn.textContent = "Processing…";
+    var tok;
+    try {
+      tok = await card.tokenize();
+    } catch (e) { tok = { status: "ERR" }; }
+    if (!tok || tok.status !== "OK") {
+      showErr("Please check your card details and try again.");
+      payBtn.disabled = false; payBtn.textContent = "Subscribe & take my site live";
+      return;
+    }
+    var plans = config.plans.filter(function (p) { return selected[p.key]; }).map(function (p) { return p.key; });
+    try {
+      var resp = await fetch(API + "/checkout", {
+        method: "POST", headers: { "Content-Type": "application/json", "Accept": "application/json" },
+        body: JSON.stringify({
+          sourceId: tok.token, postName: postName, contactName: contactName,
+          email: email, phone: document.getElementById("phone").value.trim(), plans: plans
+        })
+      });
+      var data = await resp.json();
+      if (!resp.ok || !data.ok) throw new Error(data.error || "Payment failed.");
+      document.getElementById("checkout").hidden = true;
+      document.getElementById("done").hidden = false;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (e) {
+      showErr(e.message || "We couldn't complete the payment. Your card was not charged.");
+      payBtn.disabled = false; payBtn.textContent = "Subscribe & take my site live";
+    }
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>

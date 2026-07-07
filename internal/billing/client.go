@@ -22,10 +22,12 @@ import (
 const squareVersion = "2025-01-23"
 
 type Client struct {
-	baseURL    string
-	token      string
-	LocationID string
-	hc         *http.Client
+	baseURL       string
+	token         string
+	LocationID    string // public — used by the browser SDK
+	ApplicationID string // public — used by the browser SDK
+	Env           string // "sandbox" or "production" — selects the SDK CDN
+	hc            *http.Client
 }
 
 // NewClientFromEnvFile builds a client from a key=value env file (see
@@ -60,15 +62,18 @@ func NewClientFromEnvFile(path string) (*Client, error) {
 	if token == "" {
 		return nil, fmt.Errorf("SQUARE_ACCESS_TOKEN not set (file %q or env)", path)
 	}
+	env := get("SQUARE_ENV")
 	base := "https://connect.squareupsandbox.com"
-	if get("SQUARE_ENV") == "production" {
+	if env == "production" {
 		base = "https://connect.squareup.com"
 	}
 	return &Client{
-		baseURL:    base,
-		token:      token,
-		LocationID: get("SQUARE_LOCATION_ID"),
-		hc:         &http.Client{Timeout: 30 * time.Second},
+		baseURL:       base,
+		token:         token,
+		LocationID:    get("SQUARE_LOCATION_ID"),
+		ApplicationID: get("SQUARE_APPLICATION_ID"),
+		Env:           env,
+		hc:            &http.Client{Timeout: 30 * time.Second},
 	}, nil
 }
 

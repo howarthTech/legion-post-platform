@@ -1,0 +1,26 @@
+# Legion Post Websites checkout backend — deploy to /srv/apps/lpw-checkout/.
+# Holds the Square access token; Caddy routes legionpostwebsites.com/api/* here.
+services:
+  lpw-checkout:
+    image: lpw-checkout:latest          # built on-box: docker build -f Dockerfile.checkout -t lpw-checkout:latest .
+    container_name: lpw-checkout
+    restart: unless-stopped
+    env_file: /srv/secrets/square.env   # SQUARE_ENV / APPLICATION_ID / ACCESS_TOKEN / LOCATION_ID
+    environment:
+      LISTEN_ADDR: "0.0.0.0:8200"
+      TZ: "America/New_York"
+      # Optional: operator gets emailed on each paid subscription.
+      NOTIFY_URL: "https://formspree.io/f/xrewgjon"
+    ports:
+      - "127.0.0.1:8200:8200"           # loopback only; Caddy fronts it
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8200/api/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.25"
+          memory: 64m
+          pids: 100
