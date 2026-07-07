@@ -53,9 +53,11 @@ disableKinds = ["taxonomy", "term"]
   schemaAltName = "{{ .FacebookSearch }}"
   timezone = "{{ .Timezone }}"
 
-  # The client CRM's public events feed — the site's events section builds
-  # its pages from this at build time. Events are authored in the CRM.
+  # The client CRM's public feeds — the site builds its events and its
+  # officer/family roster from these at build time. The CRM is the source
+  # of truth; content is authored there, not in this repo.
   eventsAPI = "https://admin.{{ .Domain }}/api/events.json"
+  contentAPI = "https://admin.{{ .Domain }}/api/site.json"
 
 # [params.*] sub-tables must come after all direct keys above.
 [params.postal]
