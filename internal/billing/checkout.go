@@ -134,29 +134,39 @@ func (c *Client) StartSubscription(customerID, cardID, planVariationID string) (
 	return resp.Subscription.ID, nil
 }
 
-// Checkout runs the full embedded flow: ensure the plans exist, create the
-// customer, store the card, and start a subscription for each requested plan
-// key ("website" and optionally "sms"). "website" is required.
+// Checkout runs the full embedded flow: create the customer, store the card,
+// and start ONE subscription on the tier that matches the selection — so the
+// post is billed a single combined charge (Website, or Website + SMS), not a
+// separate charge per add-on. "website" is required.
 func (c *Client) Checkout(sourceID string, b Buyer, planKeys []string) (*CheckoutResult, error) {
-	// Resolve plan keys to live variation ids.
-	plans, err := c.EnsurePlans()
+	// Validate selection: website is required.
+	hasWebsite := false
+	for _, k := range planKeys {
+		if strings.EqualFold(strings.TrimSpace(k), "website") {
+			hasWebsite = true
+		}
+	}
+	if !hasWebsite {
+		return nil, fmt.Errorf("the Website plan is required")
+	}
+	tier := TierForSelection(planKeys)
+	if tier == nil {
+		return nil, fmt.Errorf("no billing tier matches the selection")
+	}
+
+	// Resolve the tier to a live Square variation id.
+	tiers, err := c.EnsureTiers()
 	if err != nil {
 		return nil, err
 	}
-	byKey := map[string]EnsuredPlan{}
-	for _, p := range plans {
-		byKey[p.Key] = p
-	}
-	// Normalize + validate selection.
-	want := map[string]bool{}
-	for _, k := range planKeys {
-		k = strings.TrimSpace(strings.ToLower(k))
-		if k == "website" || k == "sms" {
-			want[k] = true
+	var variationID string
+	for _, t := range tiers {
+		if t.Key == tier.Key {
+			variationID = t.VariationID
 		}
 	}
-	if !want["website"] {
-		return nil, fmt.Errorf("the Website plan is required")
+	if variationID == "" {
+		return nil, fmt.Errorf("tier %q not available in Square catalog", tier.Key)
 	}
 
 	customerID, err := c.CreateCustomer(b)
@@ -167,25 +177,17 @@ func (c *Client) Checkout(sourceID string, b Buyer, planKeys []string) (*Checkou
 	if err != nil {
 		return nil, err
 	}
-
-	res := &CheckoutResult{CustomerID: customerID, CardID: cardID}
-	// Deterministic order: website first, then sms.
-	for _, k := range []string{"website", "sms"} {
-		if !want[k] {
-			continue
-		}
-		p, ok := byKey[k]
-		if !ok || p.VariationID == "" {
-			return res, fmt.Errorf("plan %q not available in Square catalog", k)
-		}
-		subID, err := c.StartSubscription(customerID, cardID, p.VariationID)
-		if err != nil {
-			// Partial success: the customer/card exist and earlier subs may
-			// have started. Surface the error with what did succeed.
-			return res, fmt.Errorf("subscription for %q: %w", k, err)
-		}
-		res.SubscriptionIDs = append(res.SubscriptionIDs, subID)
-		res.Plans = append(res.Plans, k)
+	subID, err := c.StartSubscription(customerID, cardID, variationID)
+	if err != nil {
+		// The customer + card exist; the single subscription charge failed.
+		return &CheckoutResult{CustomerID: customerID, CardID: cardID},
+			fmt.Errorf("subscription: %w", err)
 	}
-	return res, nil
+
+	return &CheckoutResult{
+		CustomerID:      customerID,
+		CardID:          cardID,
+		SubscriptionIDs: []string{subID},
+		Plans:           tier.Includes, // the itemized products this charge covers
+	}, nil
 }

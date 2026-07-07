@@ -2,26 +2,64 @@ package billing
 
 import (
 	"fmt"
+	"strings"
 )
 
-// The two platform offerings. Prices decided 2026-07-06; annual cadence
-// because posts budget annually (and it matches how Legionsites bills).
+// Plans are the itemized offerings shown on the checkout page (the line items
+// the buyer sees). Prices decided 2026-07-06; annual cadence.
 var Plans = []PlanDef{
 	{Key: "website", Name: "Legion Post Website", PriceCents: 14900},
 	{Key: "sms", Name: "Legion Post SMS CRM Add-on", PriceCents: 5000},
 }
 
 type PlanDef struct {
-	Key        string // stable slug used in CLI flags
-	Name       string // catalog display name (also the idempotent identity)
+	Key        string // stable slug used in the API + selection
+	Name       string // display name
 	PriceCents int64  // annual price, USD cents
 }
 
-// EnsuredPlan is a PlanDef resolved to live catalog IDs.
-type EnsuredPlan struct {
-	PlanDef
+// Tiers are what a post is actually BILLED. Each tier is one Square
+// subscription, so a post pays a SINGLE combined charge rather than one charge
+// per add-on. The checkout page still shows the itemized Plans breakdown; only
+// the charge combines. Add a tier for each purchasable combination.
+var Tiers = []TierDef{
+	{Key: "website", Name: "Legion Post Website", PriceCents: 14900, Includes: []string{"website"}},
+	{Key: "website-sms", Name: "Legion Post Website + SMS Reminders", PriceCents: 19900, Includes: []string{"website", "sms"}},
+}
+
+type TierDef struct {
+	Key        string
+	Name       string
+	PriceCents int64
+	Includes   []string // the display-plan keys this tier bundles
+}
+
+// EnsuredTier is a TierDef resolved to live Square catalog IDs.
+type EnsuredTier struct {
+	TierDef
 	PlanID      string
 	VariationID string
+}
+
+// TierForSelection maps the buyer's selected display plans to the single
+// billing tier. "website" is required; selecting "sms" upgrades to the bundle.
+func TierForSelection(planKeys []string) *TierDef {
+	sms := false
+	for _, k := range planKeys {
+		if strings.EqualFold(strings.TrimSpace(k), "sms") {
+			sms = true
+		}
+	}
+	key := "website"
+	if sms {
+		key = "website-sms"
+	}
+	for i := range Tiers {
+		if Tiers[i].Key == key {
+			return &Tiers[i]
+		}
+	}
+	return nil
 }
 
 type catalogObject struct {
@@ -32,9 +70,7 @@ type catalogObject struct {
 }
 
 type subPlanData struct {
-	Name string `json:"name"`
-	// Populated by Square on reads; on SUBSCRIPTION_PLAN upserts we leave it
-	// empty and create variations as separate catalog objects.
+	Name                       string          `json:"name"`
 	SubscriptionPlanVariations []catalogObject `json:"subscription_plan_variations,omitempty"`
 }
 
@@ -60,30 +96,30 @@ type money struct {
 	Currency string `json:"currency"`
 }
 
-// EnsurePlans makes sure both subscription plans (and one annual variation
-// each) exist in the Square catalog, creating whatever is missing. Identity
-// is the plan display name — safe to run any number of times.
-func (c *Client) EnsurePlans() ([]EnsuredPlan, error) {
+// EnsureTiers makes sure a Square subscription plan (and one annual variation)
+// exists for each billing tier, creating whatever is missing. Identity is the
+// plan display name — safe to run any number of times.
+func (c *Client) EnsureTiers() ([]EnsuredTier, error) {
 	existing, err := c.listSubscriptionPlans()
 	if err != nil {
 		return nil, err
 	}
 
-	var out []EnsuredPlan
-	for _, def := range Plans {
-		ep := EnsuredPlan{PlanDef: def}
+	var out []EnsuredTier
+	for _, def := range Tiers {
+		et := EnsuredTier{TierDef: def}
 
 		if found, ok := existing[def.Name]; ok {
-			ep.PlanID = found.ID
+			et.PlanID = found.ID
 			if len(found.SubscriptionPlanData.SubscriptionPlanVariations) > 0 {
-				ep.VariationID = found.SubscriptionPlanData.SubscriptionPlanVariations[0].ID
+				et.VariationID = found.SubscriptionPlanData.SubscriptionPlanVariations[0].ID
 			}
 		} else {
 			var resp struct {
 				CatalogObject catalogObject `json:"catalog_object"`
 			}
 			err := c.do("POST", "/v2/catalog/object", map[string]any{
-				"idempotency_key": fmt.Sprintf("legion-plan-%s-v1", def.Key),
+				"idempotency_key": fmt.Sprintf("legion-tier-%s-v1", def.Key),
 				"object": catalogObject{
 					Type:                 "SUBSCRIPTION_PLAN",
 					ID:                   "#" + def.Key,
@@ -93,21 +129,21 @@ func (c *Client) EnsurePlans() ([]EnsuredPlan, error) {
 			if err != nil {
 				return nil, fmt.Errorf("create plan %q: %w", def.Name, err)
 			}
-			ep.PlanID = resp.CatalogObject.ID
+			et.PlanID = resp.CatalogObject.ID
 		}
 
-		if ep.VariationID == "" {
+		if et.VariationID == "" {
 			var resp struct {
 				CatalogObject catalogObject `json:"catalog_object"`
 			}
 			err := c.do("POST", "/v2/catalog/object", map[string]any{
-				"idempotency_key": fmt.Sprintf("legion-planvar-%s-v1", def.Key),
+				"idempotency_key": fmt.Sprintf("legion-tiervar-%s-v1", def.Key),
 				"object": catalogObject{
 					Type: "SUBSCRIPTION_PLAN_VARIATION",
 					ID:   "#" + def.Key + "-annual",
 					SubscriptionVarData: &subPlanVarData{
 						Name:               def.Name + " — Annual",
-						SubscriptionPlanID: ep.PlanID,
+						SubscriptionPlanID: et.PlanID,
 						Phases: []phase{{
 							Cadence: "ANNUAL",
 							Ordinal: 0,
@@ -122,10 +158,10 @@ func (c *Client) EnsurePlans() ([]EnsuredPlan, error) {
 			if err != nil {
 				return nil, fmt.Errorf("create variation for %q: %w", def.Name, err)
 			}
-			ep.VariationID = resp.CatalogObject.ID
+			et.VariationID = resp.CatalogObject.ID
 		}
 
-		out = append(out, ep)
+		out = append(out, et)
 	}
 	return out, nil
 }
