@@ -48,9 +48,8 @@ func scaffoldContent(contentDir string, s *spec.Spec) ([]string, error) {
 			"Rent our facility for your event.",
 			"Add rental pricing, capacity, amenities, photos, and a booking contact."),
 
-		"gallery/_index.md": stub("Photo Gallery",
-			"Photos from "+s.PostShortName+" events.",
-			"Add albums under content/gallery/ as page bundles (a folder of photos + index.md). See the reference instance for an example."),
+		"gallery/_index.md":       galleryIndex(s),
+		"gallery/_content.gotmpl": galleryAdapter(),
 
 		"contact.md": contactPage(s),
 	}
@@ -142,6 +141,81 @@ func eventsAdapter() string {
   {{ end }}
 {{ else }}
   {{ errorf "events API returned no response (%s)" $url }}
+{{ end }}
+`
+}
+
+func galleryIndex(s *spec.Spec) string {
+	return fmt.Sprintf(`---
+title: "Photo Gallery"
+description: "Photos from %s events, ceremonies, and gatherings."
+---
+
+Browse photos from %s. Click any album below to view its photos.
+
+Albums are managed in the post's CRM (the Photo gallery screen) and build into
+this page automatically. The content adapter next to this file pulls each album
+and its photos from the CRM's public gallery API at build time.
+`, s.PostShortName, s.PostShortName)
+}
+
+// galleryAdapter is the Hugo content adapter that builds album pages from the
+// client CRM's public /api/gallery.json (params.galleryAPI in hugo.toml). Each
+// photo is fetched and attached as a page image resource so the theme's gallery
+// layouts can thumbnail/resize it. Kept in sync with the reference instance's
+// content/gallery/_content.gotmpl.
+func galleryAdapter() string {
+	return `{{/* Build gallery album pages from the CRM's gallery API (the CRM is the
+     source of truth — albums and photos are managed by the post's admin in the
+     CRM, not in this repo). URL set in hugo.toml [params] galleryAPI.
+
+     Each album becomes a page bundle and each photo is attached as a page
+     image resource, so the theme's gallery layouts can thumbnail and resize it.
+
+     Failure mode is deliberate, matching events: if the API (or any photo) is
+     unreachable or malformed, the BUILD FAILS (errorf) rather than silently
+     publishing an incomplete gallery. The deploy job only rsyncs successful
+     builds, so the live site keeps its last good gallery. */}}
+
+{{ $url := site.Params.galleryAPI }}
+{{ if not $url }}
+  {{ errorf "params.galleryAPI is not set — the gallery section cannot build" }}
+{{ end }}
+
+{{ $opts := dict "headers" (dict "User-Agent" "hugo-legion-site-build") }}
+{{ with resources.GetRemote $url $opts }}
+  {{ with .Err }}
+    {{ errorf "gallery API fetch failed (%s): %s" $url . }}
+  {{ else }}
+    {{ $feed := .Content | transform.Unmarshal }}
+    {{ range $feed.albums }}
+      {{ $album := . }}
+      {{ $date := .date | default (now.Format "2006-01-02") }}
+      {{ $.AddPage (dict
+           "path"    .slug
+           "title"   .title
+           "dates"   (dict "date" (time.AsTime $date))
+           "content" (dict "mediaType" "text/markdown" "value" (.description | default ""))
+      ) }}
+      {{ range $i, $photo := .photos }}
+        {{ with resources.GetRemote $photo.url $opts }}
+          {{ with .Err }}
+            {{ errorf "gallery photo fetch failed (%s): %s" $photo.url . }}
+          {{ else }}
+            {{ $.AddResource (dict
+                 "path"    (printf "%s/%04d-%s" $album.slug $i (path.Base $photo.url))
+                 "title"   ($photo.caption | default "")
+                 "content" (dict "mediaType" .MediaType.Type "value" .Content)
+            ) }}
+          {{ end }}
+        {{ else }}
+          {{ errorf "gallery photo returned no response (%s)" $photo.url }}
+        {{ end }}
+      {{ end }}
+    {{ end }}
+  {{ end }}
+{{ else }}
+  {{ errorf "gallery API returned no response (%s)" $url }}
 {{ end }}
 `
 }
