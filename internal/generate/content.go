@@ -25,28 +25,33 @@ func scaffoldContent(contentDir string, s *spec.Spec) ([]string, error) {
 		"_index.md": frontMatter("American Legion "+s.PostShortName,
 			s.PostName+" — "+s.Locality+", "+s.RegionLong+"."),
 
-		"about/_index.md": stub("About "+s.PostShortName,
+		"about/_index.md": proseStub("About "+s.PostShortName,
 			"Who we are, where we meet, and how we serve "+s.Locality+".",
-			"Write the post's introduction. Officers render automatically from data/officers.yaml via the {{</* officers */>}} shortcode."),
+			"Write the post's introduction. Officers render automatically from data/officers.yaml via the {{</* officers */>}} shortcode.",
+			"about"),
 
-		"about/history.md": stub("Post History",
+		"about/history.md": proseStub("Post History",
 			"The history of "+s.PostName+".",
-			"Have the Post Historian write the post's history — founding year, namesake, milestones."),
+			"Have the Post Historian write the post's history — founding year, namesake, milestones.",
+			"history"),
 
-		"membership/_index.md": stub("Membership",
+		"membership/_index.md": proseStub("Membership",
 			"Eligibility, dues, and how to join "+s.PostShortName+".",
-			"Membership overview. Copy the standard eligibility/why-join/apply pages from the reference instance and adjust dues if different."),
+			"Membership overview. Copy the standard eligibility/why-join/apply pages from the reference instance and adjust dues if different.",
+			"membership"),
 
 		"events/_index.md":        eventsIndex(),
 		"events/_content.gotmpl":  eventsAdapter(),
 
-		"family/_index.md": stub("The American Legion Family",
+		"family/_index.md": proseStub("The American Legion Family",
 			"The Auxiliary, Sons of the American Legion, and Legion Riders at "+s.PostShortName+".",
-			"Intro to the post's Legion Family. Family contacts render from data/officers.yaml via {{</* family-contacts */>}}."),
+			"Intro to the post's Legion Family. Family contacts render from data/officers.yaml via {{</* family-contacts */>}}.",
+			"family"),
 
-		"rental/_index.md": stub("Hall Rental",
+		"rental/_index.md": proseStub("Hall Rental",
 			"Rent our facility for your event.",
-			"Add rental pricing, capacity, amenities, photos, and a booking contact."),
+			"Add rental pricing, capacity, amenities, photos, and a booking contact.",
+			"rental"),
 
 		"gallery/_index.md":       galleryIndex(s),
 		"gallery/_content.gotmpl": galleryAdapter(),
@@ -74,6 +79,15 @@ func frontMatter(title, desc string) string {
 func stub(title, desc, todo string) string {
 	return fmt.Sprintf("---\ntitle: %q\ndescription: %q\n---\n\n{{< todo >}}\n%s\n{{< /todo >}}\n",
 		title, desc, todo)
+}
+
+// proseStub is stub() for a page whose body a post can later author in the CRM
+// (a store.PageDefs slug). The crmSlug front matter wires the theme's CRM
+// page-body override: once the post writes that page in the CRM, its body
+// replaces this stub; until then, this renders.
+func proseStub(title, desc, todo, crmSlug string) string {
+	return fmt.Sprintf("---\ntitle: %q\ndescription: %q\ncrmSlug: %q\n---\n\n{{< todo >}}\n%s\n{{< /todo >}}\n",
+		title, desc, crmSlug, todo)
 }
 
 func eventsIndex() string {
@@ -149,6 +163,7 @@ func galleryIndex(s *spec.Spec) string {
 	return fmt.Sprintf(`---
 title: "Photo Gallery"
 description: "Photos from %s events, ceremonies, and gatherings."
+crmSlug: "gallery"
 ---
 
 Browse photos from %s. Click any album below to view its photos.
