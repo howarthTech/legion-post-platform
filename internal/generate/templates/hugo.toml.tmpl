@@ -59,6 +59,9 @@ disableKinds = ["taxonomy", "term"]
   eventsAPI = "https://admin.{{ .Domain }}/api/events.json"
   contentAPI = "https://admin.{{ .Domain }}/api/site.json"
   galleryAPI = "https://admin.{{ .Domain }}/api/gallery.json"
+  # Public self-serve SMS opt-in page (served by the CRM); the site's text-
+  # reminder call-to-action and the documented A2P 10DLC opt-in URL.
+  subscribeURL = "https://admin.{{ .Domain }}/subscribe"
 
 # [params.*] sub-tables must come after all direct keys above.
 [params.postal]
